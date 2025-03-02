@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>サンプルWEBページ</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        header {
+            background-color: #4a86e8;
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+        }
+        h1 {
+            margin: 0;
+        }
+        .content {
+            background-color: white;
+            padding: 2rem;
+            margin-top: 2rem;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding: 1rem 0;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>サンプルWEBページへようこそ</h1>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="content">
+            <h2>このページについて</h2>
+            <p>これはDjangoで作成されたサンプルWEBページです。</p>
+            <p>現在の時刻: {{ current_time }}</p>
+            
+            <h2>機能一覧</h2>
+            <ul>
+                <li>基本的なHTMLレイアウト</li>
+                <li>CSSによるスタイリング</li>
+                <li>Djangoテンプレートの使用</li>
+                <li>現在時刻の表示</li>
+            </ul>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 サンプルWEBページ</p>
+        </div>
+    </footer>
+</body>
+</html>
