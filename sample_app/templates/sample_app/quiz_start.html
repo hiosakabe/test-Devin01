@@ -40,6 +40,21 @@
             padding: 1rem 0;
             color: #666;
         }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+        .form-control {
+            width: 100%;
+            padding: 0.5rem;
+            font-size: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
         .btn {
             display: inline-block;
             background-color: #4a86e8;
@@ -50,20 +65,9 @@
             cursor: pointer;
             font-size: 1rem;
             text-decoration: none;
-            margin-top: 1rem;
         }
         .btn:hover {
             background-color: #3a76d8;
-        }
-        .feature-box {
-            border: 1px solid #ddd;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-radius: 4px;
-        }
-        .feature-box h3 {
-            margin-top: 0;
-            color: #4a86e8;
         }
     </style>
 </head>
@@ -76,23 +80,25 @@
     
     <div class="container">
         <div class="content">
-            <h2>メイドインアビスの世界へようこそ</h2>
-            <p>アビスの謎に満ちた世界について、あなたはどれだけ知っていますか？</p>
-            <p>現在の時刻: {{ current_time }}</p>
+            <h2>クイズを始める</h2>
+            <p>メイドインアビスの世界に関するクイズに挑戦しましょう！遺物や原生生物についての知識をテストします。</p>
             
-            <div class="feature-box">
-                <h3>遺物（アーティファクト）クイズ</h3>
-                <p>アビスで発見された不思議な遺物についての知識をテストします。</p>
-                <p>特級、第一級、第二級など、遺物の分類や特性について学びましょう。</p>
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="{{ form.player_name.id_for_label }}">{{ form.player_name.label }}</label>
+                    {{ form.player_name }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.category.id_for_label }}">{{ form.category.label }}</label>
+                    {{ form.category }}
+                </div>
+                <button type="submit" class="btn">クイズを始める</button>
+            </form>
+            
+            <div style="margin-top: 2rem;">
+                <a href="{% url 'index' %}" class="btn" style="background-color: #999;">ホームに戻る</a>
             </div>
-            
-            <div class="feature-box">
-                <h3>原生生物クイズ</h3>
-                <p>アビスに生息する危険な生物についての知識をテストします。</p>
-                <p>各層に生息する生物の特徴や危険度について学びましょう。</p>
-            </div>
-            
-            <a href="{% url 'quiz_start' %}" class="btn">クイズを始める</a>
         </div>
     </div>
     

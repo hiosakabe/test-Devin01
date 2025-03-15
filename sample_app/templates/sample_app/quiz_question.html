@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>メイドインアビス クイズゲーム</title>
+    <title>メイドインアビス クイズゲーム - 問題</title>
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
@@ -40,6 +40,34 @@
             padding: 1rem 0;
             color: #666;
         }
+        .progress-container {
+            width: 100%;
+            background-color: #ddd;
+            border-radius: 4px;
+            margin-bottom: 2rem;
+        }
+        .progress-bar {
+            height: 20px;
+            background-color: #4a86e8;
+            border-radius: 4px;
+            text-align: center;
+            color: white;
+            line-height: 20px;
+        }
+        .question {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+        }
+        .answers {
+            margin-bottom: 2rem;
+        }
+        .answer-option {
+            margin-bottom: 1rem;
+        }
+        .answer-option input[type="radio"] {
+            margin-right: 0.5rem;
+        }
         .btn {
             display: inline-block;
             background-color: #4a86e8;
@@ -50,20 +78,9 @@
             cursor: pointer;
             font-size: 1rem;
             text-decoration: none;
-            margin-top: 1rem;
         }
         .btn:hover {
             background-color: #3a76d8;
-        }
-        .feature-box {
-            border: 1px solid #ddd;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-radius: 4px;
-        }
-        .feature-box h3 {
-            margin-top: 0;
-            color: #4a86e8;
         }
     </style>
 </head>
@@ -76,23 +93,30 @@
     
     <div class="container">
         <div class="content">
-            <h2>メイドインアビスの世界へようこそ</h2>
-            <p>アビスの謎に満ちた世界について、あなたはどれだけ知っていますか？</p>
-            <p>現在の時刻: {{ current_time }}</p>
+            <h2>問題 {{ current_question }} / {{ total_questions }}</h2>
+            <p>プレイヤー: {{ player_name }}</p>
             
-            <div class="feature-box">
-                <h3>遺物（アーティファクト）クイズ</h3>
-                <p>アビスで発見された不思議な遺物についての知識をテストします。</p>
-                <p>特級、第一級、第二級など、遺物の分類や特性について学びましょう。</p>
+            <div class="progress-container">
+                <div class="progress-bar" style="width: {{ progress }}%">{{ progress }}%</div>
             </div>
             
-            <div class="feature-box">
-                <h3>原生生物クイズ</h3>
-                <p>アビスに生息する危険な生物についての知識をテストします。</p>
-                <p>各層に生息する生物の特徴や危険度について学びましょう。</p>
-            </div>
-            
-            <a href="{% url 'quiz_start' %}" class="btn">クイズを始める</a>
+            <form method="post">
+                {% csrf_token %}
+                <div class="question">
+                    {{ question.question_text }}
+                </div>
+                
+                <div class="answers">
+                    {% for radio in form.answer %}
+                    <div class="answer-option">
+                        {{ radio.tag }}
+                        <label for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <button type="submit" class="btn">次へ</button>
+            </form>
         </div>
     </div>
     
