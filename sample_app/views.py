@@ -228,6 +228,15 @@ def quiz_api(request, session_id):
                 
                 return JsonResponse({'results': results})
             
+            elif action == 'update_status':
+                new_status = data.get('status')
+                if new_status in ['waiting', 'in_progress', 'completed']:
+                    session.status = new_status
+                    session.save()
+                    return JsonResponse({'status': 'updated'})
+                else:
+                    return JsonResponse({'error': '無効なステータス'}, status=400)
+            
             else:
                 return JsonResponse({'error': '不明なアクション。'}, status=400)
         
