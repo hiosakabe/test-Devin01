@@ -128,7 +128,10 @@ def quiz_host(request):
             )
             session.save()
             
-            return redirect('quiz_session', session_id=session.session_id)
+            # クイズマスター名をクエリパラメータとして含めてリダイレクト
+            redirect_url = reverse('quiz_session', kwargs={'session_id': session.session_id})
+            redirect_url += f'?name={quiz_master}'
+            return redirect(redirect_url)
     else:
         form = QuizSessionForm()
     
@@ -218,6 +221,15 @@ def quiz_api(request, session_id):
                     participant.save()
                 
                 return JsonResponse({'is_correct': is_correct})
+            
+            elif action == 'update_status':
+                status = data.get('status')
+                if status in ['waiting', 'in_progress', 'completed']:
+                    session.status = status
+                    session.save()
+                    return JsonResponse({'success': True})
+                else:
+                    return JsonResponse({'error': '無効なステータス。'}, status=400)
             
             elif action == 'end_session':
                 session.status = 'completed'
