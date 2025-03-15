@@ -313,35 +313,53 @@
             const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             const wsUrl = `${wsProtocol}//${window.location.host}/ws/quiz/${sessionId}/`;
             
+            console.log('WebSocket接続を試みます:', wsUrl);
+            
             socket = new WebSocket(wsUrl);
             
             socket.onopen = function(e) {
-                console.log('WebSocket接続が確立されました');
+                console.log('WebSocket接続が確立されました', wsUrl);
+                console.log('接続パラメータ:', {
+                    sessionId: sessionId,
+                    playerName: playerName,
+                    isQuizMaster: isQuizMaster
+                });
                 
                 // 参加者として参加した場合、参加メッセージを送信
                 if (!isQuizMaster) {
+                    console.log('参加者として参加メッセージを送信:', playerName);
                     socket.send(JSON.stringify({
                         'type': 'participant_joined',
                         'name': playerName
                     }));
+                } else {
+                    console.log('クイズマスターとして接続しました');
                 }
             };
             
             socket.onmessage = function(e) {
-                const data = JSON.parse(e.data);
-                handleWebSocketMessage(data);
+                try {
+                    const data = JSON.parse(e.data);
+                    console.log('WebSocketメッセージを受信:', data);
+                    handleWebSocketMessage(data);
+                } catch (error) {
+                    console.error('WebSocketメッセージの処理中にエラーが発生しました:', error);
+                    console.error('受信したデータ:', e.data);
+                }
             };
             
             socket.onclose = function(e) {
-                console.log('WebSocket接続が閉じられました');
+                console.log('WebSocket接続が閉じられました', e.code, e.reason);
                 // 再接続を試みる
                 setTimeout(function() {
+                    console.log('WebSocket再接続を試みます...');
                     connectWebSocket();
                 }, 1000);
             };
             
             socket.onerror = function(e) {
                 console.error('WebSocketエラー:', e);
+                console.error('WebSocket状態:', socket.readyState);
             };
         }
         
@@ -392,6 +410,7 @@
         
         // 問題開始の処理
         function handleQuestionStart(data) {
+            console.log('問題開始メッセージを受信:', data);
             const question = data.question;
             
             if (!question) {
@@ -410,7 +429,7 @@
             feedback.textContent = '';
             
             // 問題番号を更新
-            currentQuestionIndex++;
+            currentQuestionIndex = data.question_index !== undefined ? data.question_index + 1 : currentQuestionIndex + 1;
             currentQuestionSpan.textContent = currentQuestionIndex;
             
             // 問題テキストを設定
@@ -418,6 +437,15 @@
             
             // 回答選択肢を設定
             answersList.innerHTML = '';
+            
+            console.log('回答選択肢を設定:', question.answers);
+            
+            if (!question.answers || question.answers.length === 0) {
+                console.error('回答選択肢がありません');
+                answersList.innerHTML = '<div class="error-message">回答選択肢がありません</div>';
+                return;
+            }
+            
             question.answers.forEach(answer => {
                 const answerElement = document.createElement('div');
                 answerElement.className = 'answer-option';
@@ -433,6 +461,7 @@
             radioButtons.forEach(radio => {
                 radio.addEventListener('change', function() {
                     selectedAnswerId = this.value;
+                    console.log('回答が選択されました:', selectedAnswerId);
                 });
             });
             
@@ -440,6 +469,9 @@
             if (isQuizMaster && nextQuestionButton) {
                 nextQuestionButton.disabled = true;
             }
+            
+            // 選択肢が表示されたことをログに記録
+            console.log('問題と選択肢の表示が完了しました');
         }
         
         // 回答提出の処理
@@ -516,6 +548,8 @@
         // クイズマスター: クイズ開始ボタンのイベントリスナー
         if (startQuizButton) {
             startQuizButton.addEventListener('click', function() {
+                console.log('クイズ開始ボタンがクリックされました');
+                
                 // セッションステータスを更新
                 fetch(`/quiz/api/${sessionId}/`, {
                     method: 'POST',
@@ -527,8 +561,15 @@
                         status: 'in_progress'
                     })
                 })
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('ステータス更新に失敗しました');
+                    }
+                    return response.json();
+                })
                 .then(data => {
+                    console.log('ステータス更新成功:', data);
+                    
                     // 最初の問題を開始
                     socket.send(JSON.stringify({
                         'type': 'question_start',
@@ -541,7 +582,8 @@
                     endQuizButton.style.display = 'inline-block';
                 })
                 .catch(error => {
-                    console.error('エラー:', error);
+                    console.error('クイズ開始中にエラーが発生しました:', error);
+                    alert('クイズの開始に失敗しました。もう一度お試しください。');
                 });
             });
         }
@@ -549,13 +591,22 @@
         // クイズマスター: 次の問題ボタンのイベントリスナー
         if (nextQuestionButton) {
             nextQuestionButton.addEventListener('click', function() {
+                console.log('次の問題ボタンがクリックされました');
+                console.log('現在の問題インデックス:', currentQuestionIndex);
+                
                 if (currentQuestionIndex < parseInt(totalQuestionsSpan.textContent)) {
+                    // 次の問題のインデックスを送信
+                    // currentQuestionIndexはUIでの表示用で1から始まるが、バックエンドは0から始まる
+                    // 次の問題のインデックスを計算（現在のインデックスに1を足す）
+                    const nextQuestionIndex = currentQuestionIndex + 1; // 次の問題番号
                     socket.send(JSON.stringify({
                         'type': 'question_start',
-                        'question_index': currentQuestionIndex
+                        'question_index': nextQuestionIndex
                     }));
+                    console.log('次の問題のインデックスを送信:', nextQuestionIndex);
                 } else {
                     // 全ての問題が終了した場合
+                    console.log('全ての問題が終了しました。セッションを終了します。');
                     socket.send(JSON.stringify({
                         'type': 'session_end'
                     }));
