@@ -10,6 +10,7 @@ class PlayerNameForm(forms.Form):
     category = forms.ModelChoiceField(
         queryset=QuizCategory.objects.all(),
         label='カテゴリー',
+        empty_label='カテゴリーを選択してください',
         widget=forms.Select(attrs={'class': 'form-control'})
     )
 
