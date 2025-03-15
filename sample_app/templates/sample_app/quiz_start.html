@@ -83,8 +83,8 @@
             <h2>クイズを始める</h2>
             <p>メイドインアビスの世界に関するクイズに挑戦しましょう！遺物や原生生物についての知識をテストします。</p>
             
-            <form method="post">
-                {% csrf_token %}
+            <form method="post" action="/quiz/">
+                <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                 <div class="form-group">
                     <label for="{{ form.player_name.id_for_label }}">{{ form.player_name.label }}</label>
                     {{ form.player_name }}
