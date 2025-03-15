@@ -222,6 +222,15 @@ def quiz_api(request, session_id):
                 
                 return JsonResponse({'is_correct': is_correct})
             
+            elif action == 'update_status':
+                status = data.get('status')
+                if status in ['waiting', 'in_progress', 'completed']:
+                    session.status = status
+                    session.save()
+                    return JsonResponse({'success': True})
+                else:
+                    return JsonResponse({'error': '無効なステータス。'}, status=400)
+            
             elif action == 'end_session':
                 session.status = 'completed'
                 session.save()
