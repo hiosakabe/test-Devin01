@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>メイドインアビス クイズゲーム - セッション</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        header {
+            background-color: #4a86e8;
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+        }
+        h1 {
+            margin: 0;
+        }
+        .content {
+            background-color: white;
+            padding: 2rem;
+            margin-top: 2rem;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding: 1rem 0;
+            color: #666;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #4a86e8;
+            color: white;
+            padding: 0.7rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            text-decoration: none;
+            margin: 0.5rem;
+        }
+        .btn:hover {
+            background-color: #3a76d8;
+        }
+        .btn-secondary {
+            background-color: #999;
+        }
+        .btn-secondary:hover {
+            background-color: #777;
+        }
+        .btn-success {
+            background-color: #5cb85c;
+        }
+        .btn-success:hover {
+            background-color: #4cae4c;
+        }
+        .btn-danger {
+            background-color: #d9534f;
+        }
+        .btn-danger:hover {
+            background-color: #c9302c;
+        }
+        .session-info {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+        }
+        .session-id {
+            font-family: monospace;
+            background-color: #eee;
+            padding: 0.3rem 0.5rem;
+            border-radius: 3px;
+            font-size: 0.9rem;
+        }
+        .participants-list {
+            margin-bottom: 1.5rem;
+        }
+        .participant {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+        .participant:last-child {
+            border-bottom: none;
+        }
+        .question-container {
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+        .question-text {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+        .answers-list {
+            margin-bottom: 1.5rem;
+        }
+        .answer-option {
+            margin-bottom: 0.8rem;
+        }
+        .answer-option input[type="radio"] {
+            margin-right: 0.5rem;
+        }
+        .waiting-message {
+            text-align: center;
+            padding: 2rem;
+            font-size: 1.2rem;
+            color: #666;
+        }
+        .results-container {
+            display: none;
+            margin-top: 1.5rem;
+        }
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        .winner {
+            font-weight: bold;
+            color: #5cb85c;
+        }
+        .controls {
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 0.3rem 0.6rem;
+            border-radius: 3px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .status-waiting {
+            background-color: #f0ad4e;
+            color: white;
+        }
+        .status-in-progress {
+            background-color: #5bc0de;
+            color: white;
+        }
+        .status-completed {
+            background-color: #5cb85c;
+            color: white;
+        }
+        .feedback {
+            margin-top: 1rem;
+            padding: 0.8rem;
+            border-radius: 4px;
+            display: none;
+        }
+        .feedback-correct {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .feedback-incorrect {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>メイドインアビス クイズゲーム - セッション</h1>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="content">
+            <div class="session-info">
+                <h2>セッション情報</h2>
+                <p>
+                    <strong>セッションID:</strong> 
+                    <span class="session-id">{{ session.session_id }}</span>
+                </p>
+                <p>
+                    <strong>クイズマスター:</strong> {{ session.quiz_master }}
+                </p>
+                <p>
+                    <strong>カテゴリー:</strong> {{ session.category.name }}
+                </p>
+                <p>
+                    <strong>ステータス:</strong> 
+                    <span class="status-badge status-{{ session.status }}">
+                        {{ session.get_status_display }}
+                    </span>
+                </p>
+            </div>
+            
+            <div class="participants-list">
+                <h3>参加者 (<span id="participant-count">{{ participants|length }}</span>)</h3>
+                <div id="participants-container">
+                    {% for participant in participants %}
+                    <div class="participant" data-name="{{ participant.name }}">
+                        <span>{{ participant.name }}</span>
+                        <span class="score">{{ participant.score }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div id="waiting-container" class="waiting-message">
+                {% if session.status == 'waiting' %}
+                    {% if is_quiz_master %}
+                        <p>参加者が参加するのを待っています。全員が参加したらクイズを開始してください。</p>
+                    {% else %}
+                        <p>クイズマスターがクイズを開始するのを待っています。</p>
+                    {% endif %}
+                {% elif session.status == 'in_progress' %}
+                    <p>次の問題を待っています...</p>
+                {% endif %}
+            </div>
+            
+            <div id="question-container" class="question-container">
+                <h3>問題 <span id="current-question">1</span> / <span id="total-questions">{{ session.total_questions }}</span></h3>
+                <div class="question-text" id="question-text"></div>
+                
+                <div class="answers-list" id="answers-list"></div>
+                
+                <div class="feedback" id="feedback"></div>
+                
+                {% if not is_quiz_master %}
+                <div class="controls">
+                    <button id="submit-answer" class="btn">回答する</button>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div id="results-container" class="results-container">
+                <h3>最終結果</h3>
+                <div id="results-list"></div>
+            </div>
+            
+            {% if is_quiz_master %}
+            <div class="controls" id="master-controls">
+                {% if session.status == 'waiting' %}
+                    <button id="start-quiz" class="btn btn-success">クイズを開始</button>
+                {% elif session.status == 'in_progress' %}
+                    <button id="next-question" class="btn">次の問題</button>
+                    <button id="end-quiz" class="btn btn-danger">クイズを終了</button>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <div style="margin-top: 2rem; text-align: center;">
+                <a href="{% url 'index' %}" class="btn btn-secondary">ホームに戻る</a>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 メイドインアビス クイズゲーム</p>
+        </div>
+    </footer>
+    
+    <script>
+        // WebSocket接続
+        const sessionId = '{{ session.session_id }}';
+        const playerName = '{{ request.GET.name }}';
+        const isQuizMaster = {{ is_quiz_master|yesno:"true,false" }};
+        
+        let socket;
+        let currentQuestionIndex = 0;
+        let selectedAnswerId = null;
+        
+        // DOM要素
+        const waitingContainer = document.getElementById('waiting-container');
+        const questionContainer = document.getElementById('question-container');
+        const questionText = document.getElementById('question-text');
+        const answersList = document.getElementById('answers-list');
+        const currentQuestionSpan = document.getElementById('current-question');
+        const totalQuestionsSpan = document.getElementById('total-questions');
+        const participantsContainer = document.getElementById('participants-container');
+        const participantCount = document.getElementById('participant-count');
+        const feedback = document.getElementById('feedback');
+        const resultsContainer = document.getElementById('results-container');
+        const resultsList = document.getElementById('results-list');
+        
+        // クイズマスター用コントロール
+        const masterControls = isQuizMaster ? document.getElementById('master-controls') : null;
+        const startQuizButton = isQuizMaster ? document.getElementById('start-quiz') : null;
+        const nextQuestionButton = isQuizMaster ? document.getElementById('next-question') : null;
+        const endQuizButton = isQuizMaster ? document.getElementById('end-quiz') : null;
+        
+        // 参加者用コントロール
+        const submitAnswerButton = !isQuizMaster ? document.getElementById('submit-answer') : null;
+        
+        // WebSocket接続を確立
+        function connectWebSocket() {
+            // WebSocketのURLを構築
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${wsProtocol}//${window.location.host}/ws/quiz/${sessionId}/`;
+            
+            socket = new WebSocket(wsUrl);
+            
+            socket.onopen = function(e) {
+                console.log('WebSocket接続が確立されました');
+                
+                // 参加者として参加した場合、参加メッセージを送信
+                if (!isQuizMaster) {
+                    socket.send(JSON.stringify({
+                        'type': 'participant_joined',
+                        'name': playerName
+                    }));
+                }
+            };
+            
+            socket.onmessage = function(e) {
+                const data = JSON.parse(e.data);
+                handleWebSocketMessage(data);
+            };
+            
+            socket.onclose = function(e) {
+                console.log('WebSocket接続が閉じられました');
+                // 再接続を試みる
+                setTimeout(function() {
+                    connectWebSocket();
+                }, 1000);
+            };
+            
+            socket.onerror = function(e) {
+                console.error('WebSocketエラー:', e);
+            };
+        }
+        
+        // WebSocketメッセージを処理
+        function handleWebSocketMessage(data) {
+            const messageType = data.type;
+            
+            switch (messageType) {
+                case 'participant_joined':
+                    handleParticipantJoined(data);
+                    break;
+                case 'question_start':
+                    handleQuestionStart(data);
+                    break;
+                case 'answer_submitted':
+                    handleAnswerSubmitted(data);
+                    break;
+                case 'question_end':
+                    handleQuestionEnd(data);
+                    break;
+                case 'session_end':
+                    handleSessionEnd(data);
+                    break;
+                default:
+                    console.warn('不明なメッセージタイプ:', messageType);
+            }
+        }
+        
+        // 参加者が参加した場合の処理
+        function handleParticipantJoined(data) {
+            const participantName = data.name;
+            
+            // 参加者リストに追加
+            const participantElement = document.createElement('div');
+            participantElement.className = 'participant';
+            participantElement.setAttribute('data-name', participantName);
+            participantElement.innerHTML = `
+                <span>${participantName}</span>
+                <span class="score">0</span>
+            `;
+            
+            participantsContainer.appendChild(participantElement);
+            
+            // 参加者数を更新
+            const count = participantsContainer.querySelectorAll('.participant').length;
+            participantCount.textContent = count;
+        }
+        
+        // 問題開始の処理
+        function handleQuestionStart(data) {
+            const question = data.question;
+            
+            if (!question) {
+                console.error('問題データがありません');
+                return;
+            }
+            
+            // 問題表示エリアを表示
+            waitingContainer.style.display = 'none';
+            questionContainer.style.display = 'block';
+            resultsContainer.style.display = 'none';
+            
+            // フィードバックをクリア
+            feedback.style.display = 'none';
+            feedback.className = 'feedback';
+            feedback.textContent = '';
+            
+            // 問題番号を更新
+            currentQuestionIndex++;
+            currentQuestionSpan.textContent = currentQuestionIndex;
+            
+            // 問題テキストを設定
+            questionText.textContent = question.text;
+            
+            // 回答選択肢を設定
+            answersList.innerHTML = '';
+            question.answers.forEach(answer => {
+                const answerElement = document.createElement('div');
+                answerElement.className = 'answer-option';
+                answerElement.innerHTML = `
+                    <input type="radio" name="answer" id="answer-${answer.id}" value="${answer.id}">
+                    <label for="answer-${answer.id}">${answer.text}</label>
+                `;
+                answersList.appendChild(answerElement);
+            });
+            
+            // ラジオボタンのイベントリスナーを設定
+            const radioButtons = answersList.querySelectorAll('input[type="radio"]');
+            radioButtons.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    selectedAnswerId = this.value;
+                });
+            });
+            
+            // クイズマスターの場合、次の問題ボタンを無効化
+            if (isQuizMaster && nextQuestionButton) {
+                nextQuestionButton.disabled = true;
+            }
+        }
+        
+        // 回答提出の処理
+        function handleAnswerSubmitted(data) {
+            const participantName = data.name;
+            const isCorrect = data.is_correct;
+            
+            // 参加者のスコアを更新
+            const participantElement = participantsContainer.querySelector(`.participant[data-name="${participantName}"]`);
+            if (participantElement) {
+                const scoreElement = participantElement.querySelector('.score');
+                if (isCorrect) {
+                    scoreElement.textContent = parseInt(scoreElement.textContent) + 1;
+                }
+            }
+            
+            // 自分の回答の場合、フィードバックを表示
+            if (participantName === playerName) {
+                feedback.style.display = 'block';
+                if (isCorrect) {
+                    feedback.className = 'feedback feedback-correct';
+                    feedback.textContent = '正解です！';
+                } else {
+                    feedback.className = 'feedback feedback-incorrect';
+                    feedback.textContent = '不正解です。';
+                }
+            }
+            
+            // クイズマスターの場合、全員が回答したかチェック
+            if (isQuizMaster && nextQuestionButton) {
+                // 簡易的な実装: 一定時間後に次の問題ボタンを有効化
+                setTimeout(() => {
+                    nextQuestionButton.disabled = false;
+                }, 2000);
+            }
+        }
+        
+        // 問題終了の処理
+        function handleQuestionEnd(data) {
+            // 正解を表示
+            const correctAnswer = data.correct_answer;
+            
+            // 次の問題を待つメッセージを表示
+            waitingContainer.style.display = 'block';
+            questionContainer.style.display = 'none';
+        }
+        
+        // セッション終了の処理
+        function handleSessionEnd(data) {
+            const results = data.results;
+            
+            // 結果表示エリアを表示
+            waitingContainer.style.display = 'none';
+            questionContainer.style.display = 'none';
+            resultsContainer.style.display = 'block';
+            
+            if (masterControls) {
+                masterControls.style.display = 'none';
+            }
+            
+            // 結果リストを設定
+            resultsList.innerHTML = '';
+            results.forEach((result, index) => {
+                const resultElement = document.createElement('div');
+                resultElement.className = 'result-item' + (index === 0 ? ' winner' : '');
+                resultElement.innerHTML = `
+                    <span>${index + 1}. ${result.name}</span>
+                    <span>${result.score} 点</span>
+                `;
+                resultsList.appendChild(resultElement);
+            });
+        }
+        
+        // クイズマスター: クイズ開始ボタンのイベントリスナー
+        if (startQuizButton) {
+            startQuizButton.addEventListener('click', function() {
+                // セッションステータスを更新
+                fetch(`/quiz/api/${sessionId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'update_status',
+                        status: 'in_progress'
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // 最初の問題を開始
+                    socket.send(JSON.stringify({
+                        'type': 'question_start',
+                        'question_index': 0
+                    }));
+                    
+                    // コントロールを更新
+                    startQuizButton.style.display = 'none';
+                    nextQuestionButton.style.display = 'inline-block';
+                    endQuizButton.style.display = 'inline-block';
+                })
+                .catch(error => {
+                    console.error('エラー:', error);
+                });
+            });
+        }
+        
+        // クイズマスター: 次の問題ボタンのイベントリスナー
+        if (nextQuestionButton) {
+            nextQuestionButton.addEventListener('click', function() {
+                if (currentQuestionIndex < parseInt(totalQuestionsSpan.textContent)) {
+                    socket.send(JSON.stringify({
+                        'type': 'question_start',
+                        'question_index': currentQuestionIndex
+                    }));
+                } else {
+                    // 全ての問題が終了した場合
+                    socket.send(JSON.stringify({
+                        'type': 'session_end'
+                    }));
+                }
+            });
+        }
+        
+        // クイズマスター: クイズ終了ボタンのイベントリスナー
+        if (endQuizButton) {
+            endQuizButton.addEventListener('click', function() {
+                socket.send(JSON.stringify({
+                    'type': 'session_end'
+                }));
+            });
+        }
+        
+        // 参加者: 回答提出ボタンのイベントリスナー
+        if (submitAnswerButton) {
+            submitAnswerButton.addEventListener('click', function() {
+                if (selectedAnswerId) {
+                    socket.send(JSON.stringify({
+                        'type': 'answer_submitted',
+                        'name': playerName,
+                        'answer_id': selectedAnswerId
+                    }));
+                    
+                    // ボタンを無効化
+                    submitAnswerButton.disabled = true;
+                    
+                    // 一定時間後に再度有効化
+                    setTimeout(() => {
+                        submitAnswerButton.disabled = false;
+                    }, 2000);
+                } else {
+                    alert('回答を選択してください');
+                }
+            });
+        }
+        
+        // ページ読み込み時にWebSocket接続を確立
+        window.addEventListener('load', function() {
+            connectWebSocket();
+        });
+    </script>
+</body>
+</html>
