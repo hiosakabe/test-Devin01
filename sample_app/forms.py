@@ -11,7 +11,11 @@ class PlayerNameForm(forms.Form):
         queryset=QuizCategory.objects.all(),
         label='カテゴリー',
         empty_label='カテゴリーを選択してください',
-        widget=forms.Select(attrs={'class': 'form-control'})
+        required=True,
+        widget=forms.Select(attrs={
+            'class': 'form-control',
+            'onchange': 'this.setAttribute("data-selected", "true")'
+        })
     )
 
 class QuizAnswerForm(forms.Form):
