@@ -54,6 +54,8 @@
             font-size: 1rem;
             border: 1px solid #ddd;
             border-radius: 4px;
+            background-color: white;
+            cursor: pointer;
         }
         .btn {
             display: inline-block;
@@ -83,8 +85,8 @@
             <h2>クイズを始める</h2>
             <p>メイドインアビスの世界に関するクイズに挑戦しましょう！遺物や原生生物についての知識をテストします。</p>
             
-            <form method="post" action="/quiz/">
-                <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+            <form method="post" action="{% url 'quiz_start' %}">
+                {% csrf_token %}
                 <div class="form-group">
                     <label for="{{ form.player_name.id_for_label }}">{{ form.player_name.label }}</label>
                     {{ form.player_name }}
@@ -107,5 +109,21 @@
             <p>&copy; 2025 メイドインアビス クイズゲーム</p>
         </div>
     </footer>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const categorySelect = document.querySelector('select[name="category"]');
+            if (categorySelect) {
+                // Ensure only one option is selected
+                Array.from(categorySelect.options).forEach(option => {
+                    option.selected = false;
+                });
+                // Make the dropdown more visible on click
+                categorySelect.addEventListener('click', function() {
+                    this.focus();
+                });
+            }
+        });
+    </script>
 </body>
 </html>
