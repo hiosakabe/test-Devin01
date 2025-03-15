@@ -92,7 +92,19 @@
                 <p>各層に生息する生物の特徴や危険度について学びましょう。</p>
             </div>
             
-            <a href="{% url 'quiz_start' %}" class="btn">クイズを始める</a>
+            <div class="feature-box">
+                <h3>マルチプレイヤーモード</h3>
+                <p>友達と一緒にクイズを楽しみましょう！</p>
+                <p>クイズマスターとして問題を出題するか、参加者として回答することができます。</p>
+                <p>リアルタイムで進行するクイズセッションで競い合いましょう。</p>
+            </div>
+            
+            <div style="margin-top: 2rem; text-align: center;">
+                <h3>プレイモードを選択</h3>
+                <a href="{% url 'quiz_start' %}" class="btn">一人でプレイ</a>
+                <a href="{% url 'quiz_host' %}" class="btn">クイズマスターになる</a>
+                <a href="{% url 'quiz_join' %}" class="btn">クイズに参加する</a>
+            </div>
         </div>
     </div>
     
