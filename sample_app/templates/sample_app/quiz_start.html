@@ -71,6 +71,23 @@
         .btn:hover {
             background-color: #3a76d8;
         }
+        
+        /* Add these new styles */
+        select.form-control {
+            appearance: menulist;
+            -webkit-appearance: menulist;
+            -moz-appearance: menulist;
+            background-image: url("data:image/svg+xml;utf8,<svg fill='black' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            padding-right: 30px;
+        }
+        
+        select.form-control option {
+            background-color: white;
+            color: #333;
+            padding: 8px;
+        }
     </style>
 </head>
 <body>
@@ -114,14 +131,26 @@
         document.addEventListener('DOMContentLoaded', function() {
             const categorySelect = document.querySelector('select[name="category"]');
             if (categorySelect) {
-                // Ensure only one option is selected
+                // Reset all selected attributes
                 Array.from(categorySelect.options).forEach(option => {
                     option.selected = false;
                 });
-                // Make the dropdown more visible on click
+                
+                // Set only the first option as selected
+                if (categorySelect.options.length > 0) {
+                    categorySelect.options[0].selected = true;
+                }
+                
+                // Make the dropdown more visible and interactive
                 categorySelect.addEventListener('click', function() {
                     this.focus();
                 });
+                
+                // Force browser to redraw the select element
+                categorySelect.style.display = 'none';
+                setTimeout(function() {
+                    categorySelect.style.display = 'block';
+                }, 0);
             }
         });
     </script>
