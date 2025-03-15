@@ -128,7 +128,10 @@ def quiz_host(request):
             )
             session.save()
             
-            return redirect('quiz_session', session_id=session.session_id)
+            # クイズマスター名をクエリパラメータとして含めてリダイレクト
+            redirect_url = reverse('quiz_session', kwargs={'session_id': session.session_id})
+            redirect_url += f'?name={quiz_master}'
+            return redirect(redirect_url)
     else:
         form = QuizSessionForm()
     
