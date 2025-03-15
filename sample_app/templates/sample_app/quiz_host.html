@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>メイドインアビス クイズゲーム</title>
+    <title>メイドインアビス クイズゲーム - ホスト</title>
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
@@ -55,7 +55,6 @@
             border: 1px solid #ddd;
             border-radius: 4px;
             background-color: white;
-            cursor: pointer;
         }
         .btn {
             display: inline-block;
@@ -71,52 +70,61 @@
         .btn:hover {
             background-color: #3a76d8;
         }
-        
-        /* Add these new styles */
-        select.form-control {
-            appearance: menulist;
-            -webkit-appearance: menulist;
-            -moz-appearance: menulist;
-            background-image: url("data:image/svg+xml;utf8,<svg fill='black' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
-            background-repeat: no-repeat;
-            background-position: right 8px center;
-            padding-right: 30px;
+        .btn-secondary {
+            background-color: #999;
         }
-        
-        select.form-control option {
-            background-color: white;
-            color: #333;
-            padding: 8px;
+        .btn-secondary:hover {
+            background-color: #777;
+        }
+        .feature-box {
+            border: 1px solid #ddd;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+        }
+        .feature-box h3 {
+            margin-top: 0;
+            color: #4a86e8;
         }
     </style>
 </head>
 <body>
     <header>
         <div class="container">
-            <h1>メイドインアビス クイズゲーム</h1>
+            <h1>メイドインアビス クイズゲーム - ホスト</h1>
         </div>
     </header>
     
     <div class="container">
         <div class="content">
-            <h2>クイズを始める</h2>
-            <p>メイドインアビスの世界に関するクイズに挑戦しましょう！遺物や原生生物についての知識をテストします。</p>
+            <h2>クイズセッションを作成</h2>
+            <p>クイズマスターとしてセッションを作成し、参加者を招待しましょう。</p>
             
-            <form method="post" action="{% url 'quiz_start' %}">
+            <form method="post" action="{% url 'quiz_host' %}">
                 {% csrf_token %}
                 <div class="form-group">
-                    <label for="{{ form.player_name.id_for_label }}">{{ form.player_name.label }}</label>
-                    {{ form.player_name }}
+                    <label for="{{ form.quiz_master.id_for_label }}">{{ form.quiz_master.label }}</label>
+                    {{ form.quiz_master }}
                 </div>
                 <div class="form-group">
                     <label for="{{ form.category.id_for_label }}">{{ form.category.label }}</label>
                     {{ form.category }}
                 </div>
-                <button type="submit" class="btn">クイズを始める</button>
+                <div class="form-group">
+                    <label for="{{ form.total_questions.id_for_label }}">{{ form.total_questions.label }}</label>
+                    {{ form.total_questions }}
+                </div>
+                <button type="submit" class="btn">セッションを作成</button>
             </form>
             
+            <div class="feature-box" style="margin-top: 2rem;">
+                <h3>マルチプレイヤーモード</h3>
+                <p>クイズマスターとして、参加者と一緒にクイズを楽しみましょう。</p>
+                <p>セッションを作成すると、参加者が参加するためのセッションIDが発行されます。</p>
+            </div>
+            
             <div style="margin-top: 2rem;">
-                <a href="{% url 'index' %}" class="btn" style="background-color: #999;">ホームに戻る</a>
+                <a href="{% url 'index' %}" class="btn btn-secondary">ホームに戻る</a>
             </div>
         </div>
     </div>
@@ -126,33 +134,5 @@
             <p>&copy; 2025 メイドインアビス クイズゲーム</p>
         </div>
     </footer>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const categorySelect = document.querySelector('select[name="category"]');
-            if (categorySelect) {
-                // Reset all selected attributes
-                Array.from(categorySelect.options).forEach(option => {
-                    option.selected = false;
-                });
-                
-                // Set only the first option as selected
-                if (categorySelect.options.length > 0) {
-                    categorySelect.options[0].selected = true;
-                }
-                
-                // Make the dropdown more visible and interactive
-                categorySelect.addEventListener('click', function() {
-                    this.focus();
-                });
-                
-                // Force browser to redraw the select element
-                categorySelect.style.display = 'none';
-                setTimeout(function() {
-                    categorySelect.style.display = 'block';
-                }, 0);
-            }
-        });
-    </script>
 </body>
 </html>
