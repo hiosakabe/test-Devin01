@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>メイドインアビス クイズゲーム</title>
+    <title>メイドインアビス クイズゲーム - 結果</title>
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
@@ -33,12 +33,26 @@
             margin-top: 2rem;
             border-radius: 5px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            text-align: center;
         }
         footer {
             text-align: center;
             margin-top: 2rem;
             padding: 1rem 0;
             color: #666;
+        }
+        .result {
+            font-size: 1.5rem;
+            margin: 2rem 0;
+        }
+        .score {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #4a86e8;
+            margin: 1rem 0;
+        }
+        .message {
+            margin: 2rem 0;
         }
         .btn {
             display: inline-block;
@@ -50,20 +64,16 @@
             cursor: pointer;
             font-size: 1rem;
             text-decoration: none;
-            margin-top: 1rem;
+            margin: 0.5rem;
         }
         .btn:hover {
             background-color: #3a76d8;
         }
-        .feature-box {
-            border: 1px solid #ddd;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-radius: 4px;
+        .btn-secondary {
+            background-color: #999;
         }
-        .feature-box h3 {
-            margin-top: 0;
-            color: #4a86e8;
+        .btn-secondary:hover {
+            background-color: #777;
         }
     </style>
 </head>
@@ -76,23 +86,32 @@
     
     <div class="container">
         <div class="content">
-            <h2>メイドインアビスの世界へようこそ</h2>
-            <p>アビスの謎に満ちた世界について、あなたはどれだけ知っていますか？</p>
-            <p>現在の時刻: {{ current_time }}</p>
+            <h2>クイズ結果</h2>
+            <p>プレイヤー: {{ player_name }}</p>
+            <p>カテゴリー: {{ category.name }}</p>
             
-            <div class="feature-box">
-                <h3>遺物（アーティファクト）クイズ</h3>
-                <p>アビスで発見された不思議な遺物についての知識をテストします。</p>
-                <p>特級、第一級、第二級など、遺物の分類や特性について学びましょう。</p>
+            <div class="result">
+                あなたのスコア:
+                <div class="score">{{ correct_answers }} / {{ total_questions }}</div>
+                <div>正解率: {{ percentage }}%</div>
             </div>
             
-            <div class="feature-box">
-                <h3>原生生物クイズ</h3>
-                <p>アビスに生息する危険な生物についての知識をテストします。</p>
-                <p>各層に生息する生物の特徴や危険度について学びましょう。</p>
+            <div class="message">
+                {% if percentage >= 80 %}
+                    <p>素晴らしい！あなたはメイドインアビスの真の探窟家です！</p>
+                {% elif percentage >= 60 %}
+                    <p>よくできました！あなたはアビスについての知識が豊富です。</p>
+                {% elif percentage >= 40 %}
+                    <p>まずまずの結果です。もう少し勉強が必要かもしれません。</p>
+                {% else %}
+                    <p>もっとメイドインアビスについて学びましょう！</p>
+                {% endif %}
             </div>
             
-            <a href="{% url 'quiz_start' %}" class="btn">クイズを始める</a>
+            <div>
+                <a href="{% url 'quiz_start' %}" class="btn">もう一度挑戦する</a>
+                <a href="{% url 'index' %}" class="btn btn-secondary">ホームに戻る</a>
+            </div>
         </div>
     </div>
     

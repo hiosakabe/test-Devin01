@@ -1,0 +1,243 @@
+[
+  {
+    "model": "sample_app.quizcategory",
+    "pk": 1,
+    "fields": {
+      "name": "遺物（アーティファクト）",
+      "description": "メイドインアビスに登場する古代文明の遺物に関する問題です。"
+    }
+  },
+  {
+    "model": "sample_app.quizcategory",
+    "pk": 2,
+    "fields": {
+      "name": "原生生物",
+      "description": "メイドインアビスに登場する危険な生物に関する問題です。"
+    }
+  },
+  {
+    "model": "sample_app.quizquestion",
+    "pk": 1,
+    "fields": {
+      "category": 1,
+      "question_text": "メイドインアビスにおける遺物の分類システムは何段階ありますか？",
+      "difficulty": "easy"
+    }
+  },
+  {
+    "model": "sample_app.quizanswer",
+    "pk": 1,
+    "fields": {
+      "question": 1,
+      "answer_text": "3段階",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "sample_app.quizanswer",
+    "pk": 2,
+    "fields": {
+      "question": 1,
+      "answer_text": "5段階",
+      "is_correct": true
+    }
+  },
+  {
+    "model": "sample_app.quizanswer",
+    "pk": 3,
+    "fields": {
+      "question": 1,
+      "answer_text": "7段階",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "sample_app.quizanswer",
+    "pk": 4,
+    "fields": {
+      "question": 1,
+      "answer_text": "10段階",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "sample_app.quizquestion",
+    "pk": 2,
+    "fields": {
+      "category": 1,
+      "question_text": "「白笛」は何グレードの遺物に分類されますか？",
+      "difficulty": "medium"
+    }
+  },
+  {
+    "model": "sample_app.quizanswer",
+    "pk": 5,
+    "fields": {
+      "question": 2,
+      "answer_text": "第四級",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "sample_app.quizanswer",
+    "pk": 6,
+    "fields": {
+      "question": 2,
+      "answer_text": "第三級",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "sample_app.quizanswer",
+    "pk": 7,
+    "fields": {
+      "question": 2,
+      "answer_text": "第一級",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "sample_app.quizanswer",
+    "pk": 8,
+    "fields": {
+      "question": 2,
+      "answer_text": "特級",
+      "is_correct": true
+    }
+  },
+  {
+    "model": "sample_app.quizquestion",
+    "pk": 3,
+    "fields": {
+      "category": 2,
+      "question_text": "「リュウサザイ（Turbinid-Dragon）」の危険度は何段階ですか？",
+      "difficulty": "hard"
+    }
+  },
+  {
+    "model": "sample_app.quizanswer",
+    "pk": 9,
+    "fields": {
+      "question": 3,
+      "answer_text": "3段階",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "sample_app.quizanswer",
+    "pk": 10,
+    "fields": {
+      "question": 3,
+      "answer_text": "4段階",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "sample_app.quizanswer",
+    "pk": 11,
+    "fields": {
+      "question": 3,
+      "answer_text": "5段階",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "sample_app.quizanswer",
+    "pk": 12,
+    "fields": {
+      "question": 3,
+      "answer_text": "6段階",
+      "is_correct": true
+    }
+  },
+  {
+    "model": "sample_app.quizquestion",
+    "pk": 4,
+    "fields": {
+      "category": 2,
+      "question_text": "「成れ果て（Narehate）」とは何ですか？",
+      "difficulty": "medium"
+    }
+  },
+  {
+    "model": "sample_app.quizanswer",
+    "pk": 13,
+    "fields": {
+      "question": 4,
+      "answer_text": "アビスの最下層に住む原生生物",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "sample_app.quizanswer",
+    "pk": 14,
+    "fields": {
+      "question": 4,
+      "answer_text": "第6層の呪いを生き延びた変形した人間",
+      "is_correct": true
+    }
+  },
+  {
+    "model": "sample_app.quizanswer",
+    "pk": 15,
+    "fields": {
+      "question": 4,
+      "answer_text": "アビスで発見された古代の遺物",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "sample_app.quizanswer",
+    "pk": 16,
+    "fields": {
+      "question": 4,
+      "answer_text": "白笛を持つ探窟家の称号",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "sample_app.quizquestion",
+    "pk": 5,
+    "fields": {
+      "category": 1,
+      "question_text": "「星針（Star Compass）」は何を指し示しますか？",
+      "difficulty": "medium"
+    }
+  },
+  {
+    "model": "sample_app.quizanswer",
+    "pk": 17,
+    "fields": {
+      "question": 5,
+      "answer_text": "北極星",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "sample_app.quizanswer",
+    "pk": 18,
+    "fields": {
+      "question": 5,
+      "answer_text": "アビスの中心",
+      "is_correct": true
+    }
+  },
+  {
+    "model": "sample_app.quizanswer",
+    "pk": 19,
+    "fields": {
+      "question": 5,
+      "answer_text": "最も近い遺物の位置",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "sample_app.quizanswer",
+    "pk": 20,
+    "fields": {
+      "question": 5,
+      "answer_text": "オースの町",
+      "is_correct": false
+    }
+  }
+]
