@@ -1,0 +1,42 @@
+{% extends 'uno_game/base.html' %}
+
+{% block title %}ゲームに参加 - UNO{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>🎯 ゲームに参加</h2>
+    <p><strong>ゲーム ID:</strong> {{ game.game_id }}</p>
+    <p><strong>ホスト:</strong> {{ game.host_name }}</p>
+    <p><strong>現在のプレイヤー数:</strong> {{ game.players.count }}/8</p>
+    
+    {% if game.status == 'waiting' %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="player_name">あなたの名前:</label>
+                <input type="text" id="player_name" name="player_name" required maxlength="100" placeholder="プレイヤー名を入力">
+            </div>
+            
+            <button type="submit" class="btn btn-primary">ゲームに参加</button>
+            <a href="{% url 'uno_game:index' %}" class="btn">戻る</a>
+        </form>
+    {% else %}
+        <p class="status-{{ game.status }}">このゲームは既に開始されています。</p>
+        <a href="{% url 'uno_game:game_room' game.game_id %}" class="btn btn-primary">観戦</a>
+        <a href="{% url 'uno_game:index' %}" class="btn">戻る</a>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h3>👥 現在の参加者</h3>
+    {% if game.players.all %}
+        <ul>
+            {% for player in game.players.all %}
+                <li>{{ player.name }} (参加時刻: {{ player.joined_at|date:"H:i" }})</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>まだ参加者がいません。</p>
+    {% endif %}
+</div>
+{% endblock %}

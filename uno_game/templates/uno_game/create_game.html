@@ -1,0 +1,30 @@
+{% extends 'uno_game/base.html' %}
+
+{% block title %}新しいゲームを作成 - UNO{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>🎮 新しいUNOゲームを作成</h2>
+    
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="host_name">あなたの名前:</label>
+            <input type="text" id="host_name" name="host_name" required maxlength="100" placeholder="プレイヤー名を入力">
+        </div>
+        
+        <button type="submit" class="btn btn-primary">ゲームを作成</button>
+        <a href="{% url 'uno_game:index' %}" class="btn">キャンセル</a>
+    </form>
+</div>
+
+<div class="card">
+    <h3>📝 ゲーム作成について</h3>
+    <ul>
+        <li>ゲームを作成すると、あなたがホストになります</li>
+        <li>他のプレイヤーがゲームに参加できるようになります</li>
+        <li>最低2人、最大8人まで参加可能です</li>
+        <li>全員が準備できたらゲームを開始できます</li>
+    </ul>
+</div>
+{% endblock %}

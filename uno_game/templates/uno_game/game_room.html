@@ -1,0 +1,537 @@
+{% extends 'uno_game/base.html' %}
+
+{% block title %}ゲームルーム - UNO{% endblock %}
+
+{% block content %}
+<div id="game-container">
+    <div class="card">
+        <h2>🎮 UNO ゲームルーム</h2>
+        <div id="game-info">
+            <p><strong>ゲーム ID:</strong> {{ game_id }}</p>
+            <p><strong>ステータス:</strong> <span id="game-status">{{ game.get_status_display }}</span></p>
+            <p><strong>現在のプレイヤー:</strong> <span id="current-player">-</span></p>
+            <p><strong>方向:</strong> <span id="direction">時計回り</span></p>
+        </div>
+        
+        {% if game.status == 'waiting' %}
+        <div id="waiting-area">
+            <h3>👥 プレイヤーを待機中...</h3>
+            <div id="player-list">
+                {% for player in players %}
+                    <span class="player-badge">{{ player.name }}</span>
+                {% endfor %}
+            </div>
+            <p>最低2人のプレイヤーが必要です。現在: <span id="player-count">{{ players.count }}</span>/8</p>
+            {% if game.host_name == request.user.username or players.0.name == game.host_name %}
+                <button id="start-game-btn" class="btn btn-primary" {% if players.count < 2 %}disabled{% endif %}>
+                    ゲーム開始
+                </button>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <div id="game-area" style="display: none;">
+        <!-- Current card display -->
+        <div class="card">
+            <h3>🎯 現在のカード</h3>
+            <div id="current-card-area">
+                <div id="current-card" class="uno-card"></div>
+                <p>現在の色: <span id="current-color">-</span></p>
+            </div>
+        </div>
+
+        <!-- Player's hand -->
+        <div class="card">
+            <h3>🃏 あなたの手札</h3>
+            <div id="player-hand" class="card-hand">
+                <!-- Cards will be populated by JavaScript -->
+            </div>
+            <div id="hand-actions">
+                <button id="draw-card-btn" class="btn">カードを引く</button>
+                <button id="uno-btn" class="btn btn-danger" style="display: none;">UNO!</button>
+            </div>
+        </div>
+
+        <!-- Other players -->
+        <div class="card">
+            <h3>👥 他のプレイヤー</h3>
+            <div id="other-players" class="players-grid">
+                <!-- Other players will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Color chooser for wild cards -->
+        <div id="color-chooser" class="modal" style="display: none;">
+            <div class="modal-content">
+                <h3>色を選択してください</h3>
+                <div class="color-buttons">
+                    <button class="color-btn red" data-color="red">赤</button>
+                    <button class="color-btn yellow" data-color="yellow">黄</button>
+                    <button class="color-btn green" data-color="green">緑</button>
+                    <button class="color-btn blue" data-color="blue">青</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game messages -->
+    <div id="messages" class="card">
+        <h3>📢 ゲームメッセージ</h3>
+        <div id="message-list">
+            <!-- Messages will be populated by JavaScript -->
+        </div>
+    </div>
+</div>
+
+<style>
+    .uno-card {
+        width: 80px;
+        height: 120px;
+        border-radius: 10px;
+        display: inline-block;
+        margin: 5px;
+        position: relative;
+        cursor: pointer;
+        border: 3px solid #333;
+        font-weight: bold;
+        text-align: center;
+        line-height: 120px;
+        font-size: 18px;
+        transition: transform 0.2s;
+    }
+    
+    .uno-card:hover {
+        transform: translateY(-10px);
+    }
+    
+    .uno-card.red { background: #ff4444; color: white; }
+    .uno-card.yellow { background: #ffdd44; color: black; }
+    .uno-card.green { background: #44ff44; color: black; }
+    .uno-card.blue { background: #4444ff; color: white; }
+    .uno-card.wild { background: linear-gradient(45deg, #ff4444, #ffdd44, #44ff44, #4444ff); color: white; }
+    
+    .card-hand {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        min-height: 140px;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+    }
+    
+    .players-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+    }
+    
+    .player-info {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+    }
+    
+    .player-info.current-turn {
+        border: 3px solid #4CAF50;
+        background: rgba(76, 175, 80, 0.2);
+    }
+    
+    .player-badge {
+        background: #4CAF50;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 15px;
+        margin: 5px;
+        display: inline-block;
+    }
+    
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 1000;
+    }
+    
+    .modal-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        text-align: center;
+        color: #333;
+    }
+    
+    .color-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 20px;
+    }
+    
+    .color-btn {
+        width: 60px;
+        height: 60px;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        font-weight: bold;
+        color: white;
+        transition: transform 0.2s;
+    }
+    
+    .color-btn:hover {
+        transform: scale(1.1);
+    }
+    
+    .color-btn.red { background: #ff4444; }
+    .color-btn.yellow { background: #ffdd44; color: black; }
+    .color-btn.green { background: #44ff44; color: black; }
+    .color-btn.blue { background: #4444ff; }
+    
+    #message-list {
+        max-height: 200px;
+        overflow-y: auto;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 15px;
+        border-radius: 10px;
+    }
+    
+    .message {
+        margin: 5px 0;
+        padding: 5px;
+        border-radius: 5px;
+        background: rgba(255, 255, 255, 0.1);
+    }
+    
+    .message.system {
+        background: rgba(33, 150, 243, 0.3);
+    }
+    
+    .message.player {
+        background: rgba(76, 175, 80, 0.3);
+    }
+    
+    .message.error {
+        background: rgba(244, 67, 54, 0.3);
+    }
+</style>
+
+<script>
+    const gameId = '{{ game_id }}';
+    let playerName = '{{ request.session.player_name|default:"Player" }}';
+    let gameSocket = null;
+    let currentGameState = null;
+    let selectedCard = null;
+    
+    // Initialize WebSocket connection
+    function initWebSocket() {
+        const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        const wsPath = `${wsScheme}://${window.location.host}/ws/uno/${gameId}/`;
+        
+        gameSocket = new WebSocket(wsPath);
+        
+        gameSocket.onopen = function(e) {
+            console.log('WebSocket connected');
+            addMessage('WebSocketに接続しました', 'system');
+            
+            // Join the game
+            gameSocket.send(JSON.stringify({
+                'type': 'player_joined',
+                'name': playerName
+            }));
+        };
+        
+        gameSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            handleWebSocketMessage(data);
+        };
+        
+        gameSocket.onclose = function(e) {
+            console.log('WebSocket disconnected');
+            addMessage('WebSocket接続が切断されました', 'error');
+        };
+        
+        gameSocket.onerror = function(e) {
+            console.error('WebSocket error:', e);
+            addMessage('WebSocketエラーが発生しました', 'error');
+        };
+    }
+    
+    // Handle WebSocket messages
+    function handleWebSocketMessage(data) {
+        console.log('Received:', data);
+        
+        switch(data.type) {
+            case 'player_joined':
+                addMessage(`${data.name} がゲームに参加しました`, 'system');
+                updateGameState(data.game_state);
+                break;
+                
+            case 'game_started':
+                addMessage('ゲームが開始されました！', 'system');
+                updateGameState(data.game_state);
+                showGameArea();
+                break;
+                
+            case 'card_played':
+                addMessage(`${data.player_name} がカードを出しました`, 'player');
+                updateGameState(data.game_state);
+                if (data.winner) {
+                    addMessage(`🎉 ${data.winner} の勝利！`, 'system');
+                }
+                break;
+                
+            case 'card_drawn':
+                addMessage(`${data.player_name} がカードを引きました (${data.cards_drawn}枚)`, 'player');
+                updateGameState(data.game_state);
+                break;
+                
+            case 'uno_called':
+                addMessage(`${data.player_name} が UNO を宣言しました！`, 'system');
+                break;
+                
+            case 'error':
+                addMessage(`エラー: ${data.message}`, 'error');
+                break;
+        }
+    }
+    
+    // Update game state display
+    function updateGameState(gameState) {
+        if (!gameState) return;
+        
+        currentGameState = gameState;
+        
+        // Update game info
+        document.getElementById('game-status').textContent = gameState.status === 'in_progress' ? '進行中' : gameState.status;
+        document.getElementById('current-player').textContent = gameState.current_player || '-';
+        document.getElementById('direction').textContent = gameState.direction === 'clockwise' ? '時計回り' : '反時計回り';
+        document.getElementById('current-color').textContent = gameState.current_color || '-';
+        
+        // Update player count
+        const playerCountEl = document.getElementById('player-count');
+        if (playerCountEl) {
+            playerCountEl.textContent = gameState.players.length;
+        }
+        
+        // Update current card
+        if (gameState.top_card) {
+            updateCurrentCard(gameState.top_card);
+        }
+        
+        // Update player's hand
+        const currentPlayer = gameState.players.find(p => p.name === playerName);
+        if (currentPlayer && currentPlayer.hand) {
+            updatePlayerHand(currentPlayer.hand);
+            
+            // Show UNO button if player has 1 card
+            const unoBtn = document.getElementById('uno-btn');
+            if (currentPlayer.hand.length === 1 && !currentPlayer.has_called_uno) {
+                unoBtn.style.display = 'inline-block';
+            } else {
+                unoBtn.style.display = 'none';
+            }
+        }
+        
+        // Update other players
+        updateOtherPlayers(gameState.players.filter(p => p.name !== playerName));
+        
+        // Enable/disable draw button based on turn
+        const drawBtn = document.getElementById('draw-card-btn');
+        if (drawBtn) {
+            drawBtn.disabled = gameState.current_player !== playerName;
+        }
+    }
+    
+    // Update current card display
+    function updateCurrentCard(card) {
+        const cardEl = document.getElementById('current-card');
+        if (cardEl) {
+            cardEl.className = `uno-card ${card.color}`;
+            cardEl.textContent = getCardDisplay(card);
+        }
+    }
+    
+    // Update player's hand
+    function updatePlayerHand(hand) {
+        const handEl = document.getElementById('player-hand');
+        if (!handEl) return;
+        
+        handEl.innerHTML = '';
+        hand.forEach((card, index) => {
+            const cardEl = document.createElement('div');
+            cardEl.className = `uno-card ${card.color}`;
+            cardEl.textContent = getCardDisplay(card);
+            cardEl.onclick = () => selectCard(card, index);
+            handEl.appendChild(cardEl);
+        });
+    }
+    
+    // Update other players display
+    function updateOtherPlayers(players) {
+        const playersEl = document.getElementById('other-players');
+        if (!playersEl) return;
+        
+        playersEl.innerHTML = '';
+        players.forEach(player => {
+            const playerEl = document.createElement('div');
+            playerEl.className = 'player-info';
+            if (currentGameState && currentGameState.current_player === player.name) {
+                playerEl.classList.add('current-turn');
+            }
+            
+            playerEl.innerHTML = `
+                <h4>${player.name}</h4>
+                <p>カード数: ${player.card_count}</p>
+                ${player.has_called_uno ? '<p style="color: #ff4444;">UNO宣言済み</p>' : ''}
+            `;
+            playersEl.appendChild(playerEl);
+        });
+    }
+    
+    // Get card display text
+    function getCardDisplay(card) {
+        if (card.type === 'number') {
+            return card.value.toString();
+        } else if (card.type === 'action') {
+            switch(card.value) {
+                case 'skip': return 'Skip';
+                case 'reverse': return '⟲';
+                case 'draw_two': return '+2';
+                default: return card.value;
+            }
+        } else if (card.type === 'wild') {
+            return card.value === 'wild_draw_four' ? '+4' : 'Wild';
+        }
+        return '?';
+    }
+    
+    // Select a card to play
+    function selectCard(card, index) {
+        if (currentGameState && currentGameState.current_player !== playerName) {
+            addMessage('あなたのターンではありません', 'error');
+            return;
+        }
+        
+        selectedCard = card;
+        
+        // If it's a wild card, show color chooser
+        if (card.type === 'wild') {
+            showColorChooser();
+        } else {
+            playCard(card);
+        }
+    }
+    
+    // Play a card
+    function playCard(card, chosenColor = null) {
+        if (!gameSocket) return;
+        
+        gameSocket.send(JSON.stringify({
+            'type': 'play_card',
+            'player_name': playerName,
+            'card': card,
+            'chosen_color': chosenColor
+        }));
+    }
+    
+    // Show color chooser modal
+    function showColorChooser() {
+        document.getElementById('color-chooser').style.display = 'block';
+    }
+    
+    // Hide color chooser modal
+    function hideColorChooser() {
+        document.getElementById('color-chooser').style.display = 'none';
+    }
+    
+    // Show game area
+    function showGameArea() {
+        const waitingArea = document.getElementById('waiting-area');
+        if (waitingArea) {
+            waitingArea.style.display = 'none';
+        }
+        const gameArea = document.getElementById('game-area');
+        if (gameArea) {
+            gameArea.style.display = 'block';
+        }
+    }
+    
+    // Add message to message list
+    function addMessage(text, type = 'system') {
+        const messageList = document.getElementById('message-list');
+        if (!messageList) return;
+        
+        const messageEl = document.createElement('div');
+        messageEl.className = `message ${type}`;
+        messageEl.textContent = `${new Date().toLocaleTimeString()}: ${text}`;
+        messageList.appendChild(messageEl);
+        messageList.scrollTop = messageList.scrollHeight;
+    }
+    
+    // Event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+        // Start game button
+        const startBtn = document.getElementById('start-game-btn');
+        if (startBtn) {
+            startBtn.onclick = function() {
+                if (gameSocket) {
+                    gameSocket.send(JSON.stringify({
+                        'type': 'start_game'
+                    }));
+                }
+            };
+        }
+        
+        // Draw card button
+        const drawBtn = document.getElementById('draw-card-btn');
+        if (drawBtn) {
+            drawBtn.onclick = function() {
+                if (gameSocket) {
+                    gameSocket.send(JSON.stringify({
+                        'type': 'draw_card',
+                        'player_name': playerName
+                    }));
+                }
+            };
+        }
+        
+        // UNO button
+        const unoBtn = document.getElementById('uno-btn');
+        if (unoBtn) {
+            unoBtn.onclick = function() {
+                if (gameSocket) {
+                    gameSocket.send(JSON.stringify({
+                        'type': 'call_uno',
+                        'player_name': playerName
+                    }));
+                }
+            };
+        }
+        
+        // Color chooser buttons
+        document.querySelectorAll('.color-btn').forEach(btn => {
+            btn.onclick = function() {
+                const color = this.dataset.color;
+                hideColorChooser();
+                if (selectedCard) {
+                    playCard(selectedCard, color);
+                    selectedCard = null;
+                }
+            };
+        });
+        
+        // Initialize WebSocket
+        initWebSocket();
+    });
+</script>
+{% endblock %}

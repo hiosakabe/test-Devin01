@@ -1,0 +1,51 @@
+{% extends 'uno_game/base.html' %}
+
+{% block title %}UNO ゲーム - ホーム{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>🎯 新しいゲームを作成</h2>
+    <p>UNOゲームを作成して友達を招待しましょう！</p>
+    <a href="{% url 'uno_game:create_game' %}" class="btn btn-primary">新しいゲームを作成</a>
+</div>
+
+<div class="card">
+    <h2>🎲 アクティブなゲーム</h2>
+    {% if active_games %}
+        <div class="game-list">
+            {% for game in active_games %}
+            <div class="game-item">
+                <h3>ゲーム ID: {{ game.game_id|truncatechars:8 }}...</h3>
+                <p><strong>ホスト:</strong> {{ game.host_name }}</p>
+                <p><strong>ステータス:</strong> 
+                    <span class="status-{{ game.status }}">
+                        {{ game.get_status_display }}
+                    </span>
+                </p>
+                <p><strong>プレイヤー数:</strong> {{ game.players.count }}/8</p>
+                <p><strong>作成日時:</strong> {{ game.created_at|date:"Y/m/d H:i" }}</p>
+                
+                {% if game.status == 'waiting' %}
+                    <a href="{% url 'uno_game:join_game' game.game_id %}" class="btn">参加</a>
+                {% endif %}
+                <a href="{% url 'uno_game:game_room' game.game_id %}" class="btn btn-primary">観戦</a>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>現在アクティブなゲームはありません。新しいゲームを作成してください！</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>📋 ゲームルール</h2>
+    <ul>
+        <li>各プレイヤーは7枚のカードでスタート</li>
+        <li>場のカードと同じ色または数字のカードを出せます</li>
+        <li>特殊カード: スキップ、リバース、ドロー2、ワイルド、ワイルドドロー4</li>
+        <li>手札が1枚になったら「UNO」を宣言</li>
+        <li>最初に手札をすべて出したプレイヤーの勝利</li>
+        <li>非同期プレイ: いつでもゲームに戻って続きをプレイできます</li>
+    </ul>
+</div>
+{% endblock %}

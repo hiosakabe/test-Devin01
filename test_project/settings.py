@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'channels',
     'sample_app',
+    'uno_game',
 ]
 
 # Channels configuration
