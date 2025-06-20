@@ -99,11 +99,23 @@
                 <p>リアルタイムで進行するクイズセッションで競い合いましょう。</p>
             </div>
             
+            <div class="feature-box">
+                <h3>カラオケ採点記録</h3>
+                <p>カラオケの採点結果を詳細に記録・管理できます。</p>
+                <p>総合得点、音程、安定感、抑揚、ロングトーン、テクニックの各項目を記録し、こぶし・しゃくり・ビブラートの回数や総評も保存できます。</p>
+            </div>
+            
             <div style="margin-top: 2rem; text-align: center;">
                 <h3>プレイモードを選択</h3>
                 <a href="{% url 'quiz_start' %}" class="btn">一人でプレイ</a>
                 <a href="{% url 'quiz_host' %}" class="btn">クイズマスターになる</a>
                 <a href="{% url 'quiz_join' %}" class="btn">クイズに参加する</a>
+            </div>
+            
+            <div style="margin-top: 2rem; text-align: center;">
+                <h3>カラオケ採点記録</h3>
+                <a href="{% url 'karaoke_input' %}" class="btn">採点結果を入力</a>
+                <a href="{% url 'karaoke_list' %}" class="btn">採点結果一覧</a>
             </div>
         </div>
     </div>

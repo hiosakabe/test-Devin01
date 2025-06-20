@@ -3,8 +3,8 @@ from django.utils import timezone
 from django.urls import reverse
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import QuizCategory, QuizQuestion, QuizAnswer, QuizResult, QuizSession, QuizParticipant
-from .forms import PlayerNameForm, QuizAnswerForm, QuizSessionForm, JoinSessionForm
+from .models import QuizCategory, QuizQuestion, QuizAnswer, QuizResult, QuizSession, QuizParticipant, KaraokeScore
+from .forms import PlayerNameForm, QuizAnswerForm, QuizSessionForm, JoinSessionForm, KaraokeScoreForm
 import json
 
 def index(request):
@@ -237,3 +237,28 @@ def quiz_api(request, session_id):
             return JsonResponse({'error': str(e)}, status=500)
     
     return JsonResponse({'error': 'POSTリクエストのみ許可されています。'}, status=405)
+
+def karaoke_input(request):
+    """カラオケ採点結果入力画面"""
+    if request.method == 'POST':
+        form = KaraokeScoreForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('karaoke_result', score_id=form.instance.id)
+    else:
+        form = KaraokeScoreForm()
+    
+    return render(request, 'sample_app/karaoke_input.html', {'form': form})
+
+def karaoke_result(request, score_id):
+    """カラオケ採点結果表示画面"""
+    try:
+        score = KaraokeScore.objects.get(id=score_id)
+        return render(request, 'sample_app/karaoke_result.html', {'score': score})
+    except KaraokeScore.DoesNotExist:
+        return redirect('karaoke_list')
+
+def karaoke_list(request):
+    """カラオケ採点結果一覧画面"""
+    scores = KaraokeScore.objects.all().order_by('-created_at')
+    return render(request, 'sample_app/karaoke_list.html', {'scores': scores})

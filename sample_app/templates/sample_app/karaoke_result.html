@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>採点結果 - {{ score.player_name }} - メイドインアビス クイズゲーム</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        header {
+            background-color: #4a86e8;
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+        }
+        h1 {
+            margin: 0;
+        }
+        .content {
+            background-color: white;
+            padding: 2rem;
+            margin-top: 2rem;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding: 1rem 0;
+            color: #666;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #4a86e8;
+            color: white;
+            padding: 0.7rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            text-decoration: none;
+            margin-right: 1rem;
+        }
+        .btn:hover {
+            background-color: #3a76d8;
+        }
+        .btn-secondary {
+            background-color: #999;
+        }
+        .btn-secondary:hover {
+            background-color: #777;
+        }
+        .result-section {
+            border: 1px solid #ddd;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        .result-section h3 {
+            margin-top: 0;
+            color: #4a86e8;
+            border-bottom: 2px solid #4a86e8;
+            padding-bottom: 0.5rem;
+        }
+        .score-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eee;
+        }
+        .score-display:last-child {
+            border-bottom: none;
+        }
+        .score-label {
+            font-weight: bold;
+        }
+        .score-value {
+            font-size: 1.2rem;
+            color: #4a86e8;
+            font-weight: bold;
+        }
+        .total-score {
+            background-color: #4a86e8;
+            color: white;
+            padding: 1rem;
+            border-radius: 4px;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .total-score .score-value {
+            font-size: 2rem;
+            color: white;
+        }
+        .song-info {
+            background-color: #e8f4fd;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+        }
+        .song-info h3 {
+            margin-top: 0;
+            color: #2c5aa0;
+        }
+        .comment-section {
+            background-color: #fff9e6;
+            padding: 1rem;
+            border-radius: 4px;
+            border-left: 4px solid #ffc107;
+        }
+        .technique-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .technique-item {
+            text-align: center;
+            padding: 1rem;
+            background-color: white;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        .technique-count {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4a86e8;
+        }
+        .date-info {
+            color: #666;
+            font-size: 0.9rem;
+            text-align: right;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>カラオケ採点結果</h1>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="content">
+            <div class="song-info">
+                <h3>{{ score.song_title }}</h3>
+                <p><strong>アーティスト:</strong> {{ score.artist_name }}</p>
+                <p><strong>プレイヤー:</strong> {{ score.player_name }}</p>
+            </div>
+
+            <div class="total-score">
+                <h3 style="margin: 0; color: white;">総合得点</h3>
+                <div class="score-value">{{ score.total_score }}点</div>
+            </div>
+
+            <div class="result-section">
+                <h3>詳細採点</h3>
+                <div class="score-display">
+                    <span class="score-label">音程得点</span>
+                    <span class="score-value">{{ score.pitch_score }}点 / 40.000点</span>
+                </div>
+                <div class="score-display">
+                    <span class="score-label">安定感得点</span>
+                    <span class="score-value">{{ score.stability_score }}点 / 30.000点</span>
+                </div>
+                <div class="score-display">
+                    <span class="score-label">抑揚得点</span>
+                    <span class="score-value">{{ score.expression_score }}点 / 15.000点</span>
+                </div>
+                <div class="score-display">
+                    <span class="score-label">ロングトーン得点</span>
+                    <span class="score-value">{{ score.long_tone_score }}点 / 10.000点</span>
+                </div>
+                <div class="score-display">
+                    <span class="score-label">テクニック得点</span>
+                    <span class="score-value">{{ score.technique_score }}点 / 5.000点</span>
+                </div>
+            </div>
+
+            <div class="result-section">
+                <h3>テクニック詳細</h3>
+                <div class="technique-grid">
+                    <div class="technique-item">
+                        <div class="technique-count">{{ score.kobushi_count }}</div>
+                        <div>こぶし</div>
+                    </div>
+                    <div class="technique-item">
+                        <div class="technique-count">{{ score.shakuri_count }}</div>
+                        <div>しゃくり</div>
+                    </div>
+                    <div class="technique-item">
+                        <div class="technique-count">{{ score.vibrato_count }}</div>
+                        <div>ビブラート</div>
+                    </div>
+                </div>
+            </div>
+
+            {% if score.overall_comment %}
+            <div class="result-section">
+                <h3>総評</h3>
+                <div class="comment-section">
+                    {{ score.overall_comment|linebreaks }}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="date-info">
+                記録日時: {{ score.created_at|date:"Y年m月d日 H:i" }}
+            </div>
+
+            <div style="margin-top: 2rem; text-align: center;">
+                <a href="{% url 'karaoke_input' %}" class="btn">新しい採点を入力</a>
+                <a href="{% url 'karaoke_list' %}" class="btn btn-secondary">採点結果一覧</a>
+                <a href="{% url 'index' %}" class="btn btn-secondary">ホームに戻る</a>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 メイドインアビス クイズゲーム</p>
+        </div>
+    </footer>
+</body>
+</html>

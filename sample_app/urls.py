@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import index, quiz_start, quiz_question, quiz_result, quiz_host, quiz_join, quiz_session, quiz_api
+from .views import index, quiz_start, quiz_question, quiz_result, quiz_host, quiz_join, quiz_session, quiz_api, karaoke_input, karaoke_result, karaoke_list
 
 urlpatterns = [
     path('', index, name='index'),
@@ -10,4 +10,7 @@ urlpatterns = [
     path('quiz/join/', quiz_join, name='quiz_join'),
     path('quiz/session/<uuid:session_id>/', quiz_session, name='quiz_session'),
     path('quiz/api/<uuid:session_id>/', quiz_api, name='quiz_api'),
+    path('karaoke/', karaoke_input, name='karaoke_input'),
+    path('karaoke/result/<int:score_id>/', karaoke_result, name='karaoke_result'),
+    path('karaoke/list/', karaoke_list, name='karaoke_list'),
 ]

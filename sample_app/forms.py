@@ -1,5 +1,5 @@
 from django import forms
-from .models import QuizResult, QuizCategory
+from .models import QuizResult, QuizCategory, KaraokeScore
 
 class PlayerNameForm(forms.Form):
     player_name = forms.CharField(
@@ -64,3 +64,28 @@ class JoinSessionForm(forms.Form):
         label='プレイヤー名',
         widget=forms.TextInput(attrs={'class': 'form-control'})
     )
+
+class KaraokeScoreForm(forms.ModelForm):
+    class Meta:
+        model = KaraokeScore
+        fields = [
+            'player_name', 'song_title', 'artist_name',
+            'total_score', 'pitch_score', 'stability_score', 
+            'expression_score', 'long_tone_score', 'technique_score',
+            'overall_comment', 'kobushi_count', 'shakuri_count', 'vibrato_count'
+        ]
+        widgets = {
+            'player_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'song_title': forms.TextInput(attrs={'class': 'form-control'}),
+            'artist_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'total_score': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.001', 'max': '100.000'}),
+            'pitch_score': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.001', 'max': '40.000'}),
+            'stability_score': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.001', 'max': '30.000'}),
+            'expression_score': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.001', 'max': '15.000'}),
+            'long_tone_score': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.001', 'max': '10.000'}),
+            'technique_score': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.001', 'max': '5.000'}),
+            'overall_comment': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+            'kobushi_count': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
+            'shakuri_count': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
+            'vibrato_count': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
+        }
