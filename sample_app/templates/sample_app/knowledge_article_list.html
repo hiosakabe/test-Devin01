@@ -1,0 +1,223 @@
+{% extends 'sample_app/base.html' %}
+
+{% block title %}Articles - Knowledge Management System{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="bg-light py-3">
+    <div class="container">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{% url 'knowledge_home' %}">Home</a></li>
+            <li class="breadcrumb-item active">Articles</li>
+        </ol>
+    </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="bi bi-journal-text"></i> Knowledge Articles
+                <small class="text-muted">({{ total_articles }} articles)</small>
+            </h1>
+            {% if user.is_authenticated %}
+                <a href="{% url 'knowledge_article_create' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Create Article
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Advanced Search Form -->
+<div class="search-form">
+    <form method="GET" action="{% url 'knowledge_article_list' %}">
+        <div class="row g-3">
+            <div class="col-md-4">
+                {{ search_form.query.label_tag }}
+                {{ search_form.query }}
+            </div>
+            <div class="col-md-3">
+                {{ search_form.category.label_tag }}
+                {{ search_form.category }}
+            </div>
+            <div class="col-md-3">
+                {{ search_form.author.label_tag }}
+                {{ search_form.author }}
+            </div>
+            <div class="col-md-2">
+                {{ search_form.status.label_tag }}
+                {{ search_form.status }}
+            </div>
+        </div>
+        
+        <div class="row g-3 mt-2">
+            <div class="col-md-3">
+                {{ search_form.date_from.label_tag }}
+                {{ search_form.date_from }}
+            </div>
+            <div class="col-md-3">
+                {{ search_form.date_to.label_tag }}
+                {{ search_form.date_to }}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Tags</label>
+                <div class="form-control" style="height: auto; min-height: 38px;">
+                    {% for tag in search_form.tags %}
+                        <div class="form-check form-check-inline">
+                            {{ tag.tag }}
+                            <label class="form-check-label" for="{{ tag.id_for_label }}">
+                                {{ tag.choice_label }}
+                            </label>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-3">
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-search"></i> Search
+                </button>
+                <a href="{% url 'knowledge_article_list' %}" class="btn btn-outline-secondary ms-2">
+                    <i class="bi bi-arrow-clockwise"></i> Clear
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Articles Grid -->
+{% if page_obj %}
+    <div class="row">
+        {% for article in page_obj %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card article-card h-100">
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-primary">{{ article.category.name }}</span>
+                        <div class="d-flex align-items-center">
+                            {% if article.featured %}
+                                <i class="bi bi-star-fill text-warning me-2"></i>
+                            {% endif %}
+                            {% if user.is_authenticated %}
+                                <button class="btn-bookmark" onclick="toggleBookmark('{{ article.slug }}')" data-slug="{{ article.slug }}">
+                                    <i class="bi bi-bookmark"></i>
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <h5 class="card-title">
+                        <a href="{{ article.get_absolute_url }}" class="text-decoration-none">
+                            {{ article.title }}
+                        </a>
+                    </h5>
+                    
+                    <p class="card-text text-muted flex-grow-1">
+                        {{ article.summary|truncatewords:25 }}
+                    </p>
+                    
+                    <!-- Tags -->
+                    {% if article.tags.all %}
+                        <div class="mb-3">
+                            {% for tag in article.tags.all %}
+                                <span class="badge tag-badge" style="background-color: {{ tag.color }};">
+                                    {{ tag.name }}
+                                </span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <div class="article-meta mt-auto">
+                        <small class="text-muted">
+                            <i class="bi bi-person"></i> {{ article.author.username }}
+                            <br>
+                            <i class="bi bi-calendar"></i> {{ article.updated_at|date:"M d, Y" }}
+                            <i class="bi bi-eye ms-2"></i> {{ article.view_count }}
+                            <i class="bi bi-chat ms-2"></i> {{ article.comments.count }}
+                        </small>
+                    </div>
+                </div>
+                
+                {% if user.is_authenticated and article.author == user or user.is_staff %}
+                <div class="card-footer bg-transparent">
+                    <div class="btn-group btn-group-sm w-100">
+                        <a href="{% url 'knowledge_article_edit' article.slug %}" class="btn btn-outline-primary">
+                            <i class="bi bi-pencil"></i> Edit
+                        </a>
+                        <a href="{% url 'knowledge_article_delete' article.slug %}" class="btn btn-outline-danger">
+                            <i class="bi bi-trash"></i> Delete
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Articles pagination">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page=1">
+                        <i class="bi bi-chevron-double-left"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.paginator.num_pages }}">
+                        <i class="bi bi-chevron-double-right"></i>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+    
+{% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-search display-1 text-muted"></i>
+        <h4 class="mt-3">No articles found</h4>
+        <p class="text-muted">Try adjusting your search criteria or create a new article.</p>
+        {% if user.is_authenticated %}
+            <a href="{% url 'knowledge_article_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Create Article
+            </a>
+        {% endif %}
+    </div>
+{% endif %}
+
+{% if user.is_authenticated %}
+    {% csrf_token %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,140 @@
+{% extends 'sample_app/base.html' %}
+
+{% block title %}Delete Article - Knowledge Management System{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="bg-light py-3">
+    <div class="container">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{% url 'knowledge_home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'knowledge_article_list' %}">Articles</a></li>
+            <li class="breadcrumb-item"><a href="{{ article.get_absolute_url }}">{{ article.title|truncatewords:3 }}</a></li>
+            <li class="breadcrumb-item active">Delete</li>
+        </ol>
+    </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+                <h3 class="mb-0">
+                    <i class="bi bi-exclamation-triangle"></i> Delete Article
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-danger">
+                    <h5 class="alert-heading">
+                        <i class="bi bi-exclamation-triangle-fill"></i> Warning!
+                    </h5>
+                    <p class="mb-0">
+                        You are about to permanently delete this article. This action cannot be undone.
+                        All comments, bookmarks, and view history associated with this article will also be deleted.
+                    </p>
+                </div>
+                
+                <!-- Article Preview -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <span class="badge bg-primary">{{ article.category.name }}</span>
+                            {% if article.featured %}
+                                <span class="badge bg-warning text-dark">
+                                    <i class="bi bi-star-fill"></i> Featured
+                                </span>
+                            {% endif %}
+                        </div>
+                        
+                        <h4 class="card-title">{{ article.title }}</h4>
+                        
+                        <div class="article-meta mb-3">
+                            <small class="text-muted">
+                                <i class="bi bi-person"></i> By {{ article.author.username }}
+                                <i class="bi bi-calendar ms-3"></i> Created {{ article.created_at|date:"M d, Y" }}
+                                <i class="bi bi-clock ms-3"></i> Updated {{ article.updated_at|date:"M d, Y" }}
+                            </small>
+                        </div>
+                        
+                        {% if article.summary %}
+                        <p class="card-text text-muted">{{ article.summary }}</p>
+                        {% endif %}
+                        
+                        <!-- Tags -->
+                        {% if article.tags.all %}
+                        <div class="mb-3">
+                            {% for tag in article.tags.all %}
+                                <span class="badge tag-badge" style="background-color: {{ tag.color }};">
+                                    {{ tag.name }}
+                                </span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Stats -->
+                        <div class="row text-center">
+                            <div class="col-3">
+                                <div class="h5 mb-0">{{ article.view_count }}</div>
+                                <small class="text-muted">Views</small>
+                            </div>
+                            <div class="col-3">
+                                <div class="h5 mb-0">{{ article.comments.count }}</div>
+                                <small class="text-muted">Comments</small>
+                            </div>
+                            <div class="col-3">
+                                <div class="h5 mb-0">{{ article.bookmarks.count }}</div>
+                                <small class="text-muted">Bookmarks</small>
+                            </div>
+                            <div class="col-3">
+                                <div class="h5 mb-0">{{ article.revisions.count }}</div>
+                                <small class="text-muted">Revisions</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Confirmation Form -->
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                            <label class="form-check-label" for="confirmDelete">
+                                I understand that this action is permanent and cannot be undone
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <button type="submit" class="btn btn-danger" id="deleteButton" disabled>
+                                <i class="bi bi-trash"></i> Delete Article Permanently
+                            </button>
+                        </div>
+                        
+                        <div>
+                            <a href="{{ article.get_absolute_url }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Cancel
+                            </a>
+                            <a href="{% url 'knowledge_article_edit' article.slug %}" class="btn btn-outline-primary ms-2">
+                                <i class="bi bi-pencil"></i> Edit Instead
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Enable delete button only when checkbox is checked
+document.getElementById('confirmDelete').addEventListener('change', function() {
+    document.getElementById('deleteButton').disabled = !this.checked;
+});
+</script>
+{% endblock %}

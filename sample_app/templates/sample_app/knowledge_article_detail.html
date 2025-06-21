@@ -1,0 +1,519 @@
+{% extends 'sample_app/base.html' %}
+
+{% block title %}{{ article.title }} - Knowledge Management System{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="bg-light py-3">
+    <div class="container">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{% url 'knowledge_home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'knowledge_article_list' %}">Articles</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'knowledge_category_detail' article.category.pk %}">{{ article.category.name }}</a></li>
+            <li class="breadcrumb-item active">{{ article.title|truncatewords:5 }}</li>
+        </ol>
+    </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Main Article Content -->
+    <div class="col-lg-8">
+        <article class="card">
+            <div class="card-body">
+                <!-- Article Header -->
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <div>
+                        <span class="badge bg-primary mb-2">{{ article.category.name }}</span>
+                        {% if article.featured %}
+                            <span class="badge bg-warning text-dark mb-2 ms-1">
+                                <i class="bi bi-star-fill"></i> Featured
+                            </span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-flex align-items-center">
+                        {% if user.is_authenticated %}
+                            <button class="btn-bookmark me-2" onclick="toggleBookmark('{{ article.slug }}')" data-slug="{{ article.slug }}">
+                                <i class="bi bi-bookmark{% if is_bookmarked %}-fill text-warning{% endif %}"></i>
+                            </button>
+                        {% endif %}
+                        
+                        {% if user.is_authenticated and article.author == user or user.is_staff %}
+                            <div class="btn-group">
+                                <a href="{% url 'knowledge_article_edit' article.slug %}" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </a>
+                                <a href="{% url 'knowledge_article_delete' article.slug %}" class="btn btn-outline-danger btn-sm">
+                                    <i class="bi bi-trash"></i> Delete
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Article Title -->
+                <h1 class="mb-3">{{ article.title }}</h1>
+                
+                <!-- Article Meta -->
+                <div class="article-meta mb-4 pb-3 border-bottom">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <small class="text-muted">
+                                <i class="bi bi-person"></i> By <strong>{{ article.author.username }}</strong>
+                                <br>
+                                <i class="bi bi-calendar"></i> Created {{ article.created_at|date:"F d, Y" }}
+                                <br>
+                                <i class="bi bi-clock"></i> Updated {{ article.updated_at|date:"F d, Y" }}
+                            </small>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <small class="text-muted">
+                                <i class="bi bi-eye"></i> {{ article.view_count }} views
+                                <br>
+                                <i class="bi bi-chat"></i> {{ comments.count }} comments
+                                <br>
+                                <i class="bi bi-bookmark"></i> {{ article.bookmarks.count }} bookmarks
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Article Summary -->
+                {% if article.summary %}
+                <div class="alert alert-info">
+                    <h6><i class="bi bi-info-circle"></i> Summary</h6>
+                    {{ article.summary }}
+                </div>
+                {% endif %}
+                
+                <!-- Article Tags -->
+                {% if article.tags.all %}
+                <div class="mb-4">
+                    <h6>Tags:</h6>
+                    {% for tag in article.tags.all %}
+                        <span class="badge tag-badge" style="background-color: {{ tag.color }};">
+                            {{ tag.name }}
+                        </span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <!-- Article Content -->
+                <div class="article-content">
+                    {{ article.content|linebreaks }}
+                </div>
+            </div>
+        </article>
+        
+        <!-- Comments Section -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-chat-dots"></i> Comments ({{ comments.count }})
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Comment Form -->
+                {% if user.is_authenticated %}
+                <form method="post" class="mb-4">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        {{ comment_form.content.label_tag }}
+                        {{ comment_form.content }}
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-send"></i> Post Comment
+                    </button>
+                </form>
+                {% else %}
+                <div class="alert alert-info">
+                    <a href="{% url 'admin:login' %}">Login</a> to post comments.
+                </div>
+                {% endif %}
+                
+                <!-- Comments List -->
+                {% if comments %}
+                    {% for comment in comments %}
+                    <div class="comment mb-4 pb-3 border-bottom">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <strong>{{ comment.author.username }}</strong>
+                                <small class="text-muted ms-2">
+                                    <i class="bi bi-clock"></i> {{ comment.created_at|date:"M d, Y H:i" }}
+                                </small>
+                            </div>
+                        </div>
+                        <div class="comment-content">
+                            {{ comment.content|linebreaks }}
+                        </div>
+                        
+                        <!-- Replies -->
+                        {% for reply in comment.replies.all %}
+                        <div class="comment-reply">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <strong>{{ reply.author.username }}</strong>
+                                    <small class="text-muted ms-2">
+                                        <i class="bi bi-clock"></i> {{ reply.created_at|date:"M d, Y H:i" }}
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="comment-content">
+                                {{ reply.content|linebreaks }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-chat display-4 text-muted"></i>
+                        <p class="text-muted mt-2">No comments yet. Be the first to comment!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Table of Contents (if needed) -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-list-ul"></i> Article Info
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li><strong>Category:</strong> 
+                        <a href="{% url 'knowledge_category_detail' article.category.pk %}">{{ article.category.name }}</a>
+                    </li>
+                    <li><strong>Author:</strong> {{ article.author.username }}</li>
+                    <li><strong>Status:</strong> 
+                        <span class="badge bg-success">{{ article.get_status_display }}</span>
+                    </li>
+                    <li><strong>Created:</strong> {{ article.created_at|date:"M d, Y" }}</li>
+                    <li><strong>Last Updated:</strong> {{ article.updated_at|date:"M d, Y" }}</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Related Articles -->
+        {% if related_articles %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-journals"></i> Related Articles
+                </h6>
+            </div>
+            <div class="card-body">
+                {% for related in related_articles %}
+                <div class="mb-3 pb-2 {% if not forloop.last %}border-bottom{% endif %}">
+                    <h6 class="mb-1">
+                        <a href="{{ related.get_absolute_url }}" class="text-decoration-none">
+                            {{ related.title }}
+                        </a>
+                    </h6>
+                    <small class="text-muted">
+                        <i class="bi bi-person"></i> {{ related.author.username }}
+                        <i class="bi bi-eye ms-2"></i> {{ related.view_count }}
+                    </small>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-lightning"></i> Quick Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'knowledge_article_list' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-arrow-left"></i> Back to Articles
+                    </a>
+                    <a href="{% url 'knowledge_category_detail' article.category.pk %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-tags"></i> More in {{ article.category.name }}
+                    </a>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'knowledge_article_create' %}" class="btn btn-outline-success btn-sm">
+                            <i class="bi bi-plus-circle"></i> Create New Article
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if user.is_authenticated %}
+    {% csrf_token %}
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Real-time article collaboration WebSocket
+let articleSocket = null;
+let currentlyEditing = new Set();
+let typingUsers = new Set();
+
+function initializeArticleWebSocket() {
+    if (articleSocket) {
+        articleSocket.close();
+    }
+    
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/ws/knowledge/article/{{ article.slug }}/`;
+    
+    articleSocket = new WebSocket(wsUrl);
+    
+    articleSocket.onopen = function(e) {
+        console.log('Article WebSocket connected');
+        updateConnectionStatus(true);
+    };
+    
+    articleSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        handleArticleEvent(data);
+    };
+    
+    articleSocket.onclose = function(e) {
+        console.log('Article WebSocket disconnected');
+        updateConnectionStatus(false);
+        // Reconnect after 3 seconds
+        setTimeout(initializeArticleWebSocket, 3000);
+    };
+    
+    articleSocket.onerror = function(e) {
+        console.error('Article WebSocket error:', e);
+        updateConnectionStatus(false);
+    };
+}
+
+function handleArticleEvent(data) {
+    switch(data.type) {
+        case 'user_joined':
+            addUserPresence(data.user, data.user_id);
+            break;
+        case 'user_left':
+            removeUserPresence(data.user, data.user_id);
+            break;
+        case 'comment_added':
+            addNewComment(data.comment);
+            break;
+        case 'editing_started':
+            showEditingIndicator(data.user, data.section);
+            break;
+        case 'editing_stopped':
+            hideEditingIndicator(data.user, data.section);
+            break;
+        case 'user_typing':
+            updateTypingIndicator(data.user, data.is_typing);
+            break;
+        case 'article_content_updated':
+            showContentUpdateNotification(data.user);
+            break;
+    }
+}
+
+function updateConnectionStatus(connected) {
+    const statusIndicator = document.getElementById('connection-status');
+    if (!statusIndicator) {
+        // Create status indicator if it doesn't exist
+        const indicator = document.createElement('div');
+        indicator.id = 'connection-status';
+        indicator.className = 'position-fixed';
+        indicator.style.cssText = 'top: 10px; left: 10px; z-index: 9999;';
+        document.body.appendChild(indicator);
+    }
+    
+    const indicator = document.getElementById('connection-status');
+    if (connected) {
+        indicator.innerHTML = '<span class="badge bg-success"><i class="bi bi-wifi"></i> Connected</span>';
+    } else {
+        indicator.innerHTML = '<span class="badge bg-danger"><i class="bi bi-wifi-off"></i> Disconnected</span>';
+    }
+}
+
+function addUserPresence(username, userId) {
+    const presenceContainer = document.getElementById('user-presence');
+    if (!presenceContainer) {
+        // Create presence container
+        const container = document.createElement('div');
+        container.id = 'user-presence';
+        container.className = 'mb-3';
+        container.innerHTML = '<h6><i class="bi bi-people"></i> Currently Viewing:</h6><div id="presence-list"></div>';
+        document.querySelector('.article-content').prepend(container);
+    }
+    
+    const presenceList = document.getElementById('presence-list');
+    if (!document.getElementById(`user-${userId}`)) {
+        const userBadge = document.createElement('span');
+        userBadge.id = `user-${userId}`;
+        userBadge.className = 'badge bg-primary me-1 mb-1';
+        userBadge.innerHTML = `<i class="bi bi-person"></i> ${username}`;
+        presenceList.appendChild(userBadge);
+    }
+}
+
+function removeUserPresence(username, userId) {
+    const userElement = document.getElementById(`user-${userId}`);
+    if (userElement) {
+        userElement.remove();
+    }
+}
+
+function addNewComment(comment) {
+    const commentsSection = document.getElementById('comments-section');
+    if (commentsSection) {
+        const commentHtml = `
+            <div class="comment mb-3 p-3 border rounded" data-comment-id="${comment.id}">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <strong>${comment.author}</strong>
+                    <small class="text-muted">Just now</small>
+                </div>
+                <p class="mb-0">${comment.content}</p>
+            </div>
+        `;
+        
+        // Add to comments list
+        const commentsList = commentsSection.querySelector('.comments-list');
+        if (commentsList) {
+            commentsList.insertAdjacentHTML('beforeend', commentHtml);
+        }
+        
+        // Show notification
+        showNotification(`New comment by ${comment.author}`, 'info');
+    }
+}
+
+function showEditingIndicator(username, section) {
+    currentlyEditing.add(`${username}-${section}`);
+    updateEditingIndicators();
+}
+
+function hideEditingIndicator(username, section) {
+    currentlyEditing.delete(`${username}-${section}`);
+    updateEditingIndicators();
+}
+
+function updateEditingIndicators() {
+    let editingContainer = document.getElementById('editing-indicators');
+    if (!editingContainer && currentlyEditing.size > 0) {
+        editingContainer = document.createElement('div');
+        editingContainer.id = 'editing-indicators';
+        editingContainer.className = 'alert alert-info mb-3';
+        document.querySelector('.article-content').prepend(editingContainer);
+    }
+    
+    if (editingContainer) {
+        if (currentlyEditing.size > 0) {
+            const editingList = Array.from(currentlyEditing).map(item => {
+                const [user, section] = item.split('-');
+                return `${user} (${section})`;
+            }).join(', ');
+            editingContainer.innerHTML = `<i class="bi bi-pencil"></i> Currently editing: ${editingList}`;
+        } else {
+            editingContainer.remove();
+        }
+    }
+}
+
+function updateTypingIndicator(username, isTyping) {
+    if (isTyping) {
+        typingUsers.add(username);
+    } else {
+        typingUsers.delete(username);
+    }
+    
+    let typingContainer = document.getElementById('typing-indicators');
+    if (!typingContainer && typingUsers.size > 0) {
+        typingContainer = document.createElement('div');
+        typingContainer.id = 'typing-indicators';
+        typingContainer.className = 'text-muted small mb-2';
+        const commentsSection = document.getElementById('comments-section');
+        if (commentsSection) {
+            commentsSection.prepend(typingContainer);
+        }
+    }
+    
+    if (typingContainer) {
+        if (typingUsers.size > 0) {
+            const typingList = Array.from(typingUsers).join(', ');
+            typingContainer.innerHTML = `<i class="bi bi-three-dots"></i> ${typingList} ${typingUsers.size === 1 ? 'is' : 'are'} typing...`;
+        } else {
+            typingContainer.remove();
+        }
+    }
+}
+
+function showContentUpdateNotification(username) {
+    showNotification(`${username} updated the article content`, 'warning');
+}
+
+// Comment form real-time features
+let typingTimer;
+function handleCommentTyping() {
+    if (articleSocket && articleSocket.readyState === WebSocket.OPEN) {
+        // Send typing indicator
+        articleSocket.send(JSON.stringify({
+            type: 'typing_indicator',
+            is_typing: true
+        }));
+        
+        // Clear previous timer
+        clearTimeout(typingTimer);
+        
+        // Set timer to stop typing indicator
+        typingTimer = setTimeout(() => {
+            if (articleSocket && articleSocket.readyState === WebSocket.OPEN) {
+                articleSocket.send(JSON.stringify({
+                    type: 'typing_indicator',
+                    is_typing: false
+                }));
+            }
+        }, 2000);
+    }
+}
+
+// Initialize WebSocket and event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    {% if user.is_authenticated %}
+        initializeArticleWebSocket();
+        
+        // Add typing indicator to comment form
+        const commentTextarea = document.querySelector('textarea[name="content"]');
+        if (commentTextarea) {
+            commentTextarea.addEventListener('input', handleCommentTyping);
+        }
+        
+        // Add editing indicators for article editing
+        const editButton = document.querySelector('a[href*="edit"]');
+        if (editButton) {
+            editButton.addEventListener('click', function() {
+                if (articleSocket && articleSocket.readyState === WebSocket.OPEN) {
+                    articleSocket.send(JSON.stringify({
+                        type: 'editing_start',
+                        section: 'content'
+                    }));
+                }
+            });
+        }
+    {% endif %}
+});
+
+// Clean up WebSocket on page unload
+window.addEventListener('beforeunload', function() {
+    if (articleSocket) {
+        articleSocket.close();
+    }
+});
+</script>
+{% endblock %}

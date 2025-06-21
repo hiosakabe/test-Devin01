@@ -1,0 +1,172 @@
+{% extends 'sample_app/base.html' %}
+
+{% block title %}My Bookmarks - Knowledge Management System{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="bg-light py-3">
+    <div class="container">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{% url 'knowledge_home' %}">Home</a></li>
+            <li class="breadcrumb-item active">My Bookmarks</li>
+        </ol>
+    </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="bi bi-bookmark-fill text-warning"></i> My Bookmarks
+                {% if page_obj.paginator.count %}
+                    <small class="text-muted">({{ page_obj.paginator.count }} articles)</small>
+                {% endif %}
+            </h1>
+            <a href="{% url 'knowledge_article_list' %}" class="btn btn-outline-primary">
+                <i class="bi bi-search"></i> Discover More Articles
+            </a>
+        </div>
+    </div>
+</div>
+
+{% if page_obj %}
+    <div class="row">
+        {% for bookmark in page_obj %}
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="badge bg-primary">{{ bookmark.article.category.name }}</span>
+                        <div class="d-flex align-items-center">
+                            {% if bookmark.article.featured %}
+                                <i class="bi bi-star-fill text-warning me-2"></i>
+                            {% endif %}
+                            <button class="btn-bookmark text-warning" onclick="toggleBookmark('{{ bookmark.article.slug }}')" data-slug="{{ bookmark.article.slug }}">
+                                <i class="bi bi-bookmark-fill"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <h5 class="card-title">
+                        <a href="{{ bookmark.article.get_absolute_url }}" class="text-decoration-none">
+                            {{ bookmark.article.title }}
+                        </a>
+                    </h5>
+                    
+                    <p class="card-text text-muted flex-grow-1">
+                        {{ bookmark.article.summary|truncatewords:25 }}
+                    </p>
+                    
+                    <!-- Tags -->
+                    {% if bookmark.article.tags.all %}
+                    <div class="mb-3">
+                        {% for tag in bookmark.article.tags.all %}
+                            <span class="badge tag-badge" style="background-color: {{ tag.color }};">
+                                {{ tag.name }}
+                            </span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mt-auto">
+                        <div class="article-meta mb-3">
+                            <small class="text-muted">
+                                <i class="bi bi-person"></i> {{ bookmark.article.author.username }}
+                                <i class="bi bi-calendar ms-2"></i> {{ bookmark.article.updated_at|date:"M d, Y" }}
+                                <i class="bi bi-eye ms-2"></i> {{ bookmark.article.view_count }}
+                                <i class="bi bi-chat ms-2"></i> {{ bookmark.article.comments.count }}
+                            </small>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="bi bi-bookmark-plus"></i> Bookmarked {{ bookmark.created_at|date:"M d, Y" }}
+                            </small>
+                            <a href="{{ bookmark.article.get_absolute_url }}" class="btn btn-outline-primary btn-sm">
+                                Read Article <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if user == bookmark.article.author or user.is_staff %}
+                <div class="card-footer bg-transparent">
+                    <div class="btn-group btn-group-sm w-100">
+                        <a href="{% url 'knowledge_article_edit' bookmark.article.slug %}" class="btn btn-outline-primary">
+                            <i class="bi bi-pencil"></i> Edit
+                        </a>
+                        <a href="{% url 'knowledge_article_delete' bookmark.article.slug %}" class="btn btn-outline-danger">
+                            <i class="bi bi-trash"></i> Delete
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Bookmarks pagination">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1">
+                        <i class="bi bi-chevron-double-left"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">
+                        <i class="bi bi-chevron-double-right"></i>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+    
+{% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-bookmark display-1 text-muted"></i>
+        <h4 class="mt-3">No bookmarks yet</h4>
+        <p class="text-muted">Start bookmarking articles you want to read later or reference again.</p>
+        <div class="mt-4">
+            <a href="{% url 'knowledge_article_list' %}" class="btn btn-primary">
+                <i class="bi bi-search"></i> Browse Articles
+            </a>
+            <a href="{% url 'knowledge_home' %}" class="btn btn-outline-secondary ms-2">
+                <i class="bi bi-house"></i> Go Home
+            </a>
+        </div>
+    </div>
+{% endif %}
+
+{% csrf_token %}
+{% endblock %}

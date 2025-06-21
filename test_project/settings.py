@@ -25,7 +25,12 @@ SECRET_KEY = 'django-insecure-xz1_g*tuop!3t&b9)tzgkl%sl^zuz81mwhyk2dun)f1zc*9e^%
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://knowledge-system-app-tunnel-naixw5b9.devinapps.com',
+    'https://*.devinapps.com',
+]
 
 
 # Application definition

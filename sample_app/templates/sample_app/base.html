@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Knowledge Management System{% endblock %}</title>
+    
+    <!-- Bootstrap 5.3 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUa6c+ggO+RBaOLeMqKjDqw/dqX2eFb6Og2Qh1Ks+3Oa8vP4a9KAOYiIbqyFQ" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --secondary-color: #6c757d;
+            --success-color: #198754;
+            --info-color: #0dcaf0;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background-color: #f8f9fa;
+        }
+        
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+        
+        .main-content {
+            min-height: calc(100vh - 200px);
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        
+        .card {
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            transition: box-shadow 0.15s ease-in-out;
+        }
+        
+        .card:hover {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        
+        .article-card {
+            height: 100%;
+        }
+        
+        .article-meta {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+        
+        .tag-badge {
+            font-size: 0.75rem;
+            margin-right: 0.25rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .search-form {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            margin-bottom: 2rem;
+        }
+        
+        .sidebar {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            height: fit-content;
+        }
+        
+        .footer {
+            background-color: #343a40;
+            color: white;
+            padding: 2rem 0;
+            margin-top: 3rem;
+        }
+        
+        .btn-bookmark {
+            border: none;
+            background: none;
+            color: #ffc107;
+            font-size: 1.2rem;
+        }
+        
+        .btn-bookmark:hover {
+            color: #ffca2c;
+        }
+        
+        .comment-thread {
+            border-left: 3px solid #e9ecef;
+            padding-left: 1rem;
+            margin-left: 1rem;
+        }
+        
+        .comment-reply {
+            margin-left: 2rem;
+            margin-top: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                padding-top: 1rem;
+            }
+            
+            .search-form {
+                padding: 1rem;
+            }
+            
+            .sidebar {
+                margin-top: 2rem;
+            }
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'knowledge_home' %}">
+                <i class="bi bi-book"></i> Knowledge System
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'knowledge_home' %}">
+                            <i class="bi bi-house"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'knowledge_article_list' %}">
+                            <i class="bi bi-journal-text"></i> Articles
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'knowledge_category_list' %}">
+                            <i class="bi bi-tags"></i> Categories
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-grid-3x3-gap"></i> Quiz System
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'index' %}">Quiz Home</a></li>
+                            <li><a class="dropdown-item" href="{% url 'quiz_start' %}">Start Quiz</a></li>
+                            <li><a class="dropdown-item" href="{% url 'quiz_host' %}">Host Quiz</a></li>
+                            <li><a class="dropdown-item" href="{% url 'quiz_join' %}">Join Quiz</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                
+                <!-- Search Form -->
+                <form class="d-flex me-3" method="GET" action="{% url 'knowledge_article_list' %}">
+                    <input class="form-control me-2" type="search" name="query" placeholder="Search articles..." value="{{ request.GET.query }}">
+                    <button class="btn btn-outline-light" type="submit">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </form>
+                
+                <!-- User Menu -->
+                <ul class="navbar-nav">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle"></i> {{ user.username }}
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'knowledge_article_create' %}">
+                                    <i class="bi bi-plus-circle"></i> Create Article
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'knowledge_bookmarks' %}">
+                                    <i class="bi bi-bookmark"></i> My Bookmarks
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="/admin/" target="_blank">
+                                    <i class="bi bi-gear"></i> Admin Panel
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'admin:logout' %}">
+                                    <i class="bi bi-box-arrow-right"></i> Logout
+                                </a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'admin:login' %}">
+                                <i class="bi bi-box-arrow-in-right"></i> Login
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Breadcrumb -->
+    {% block breadcrumb %}{% endblock %}
+    
+    <!-- Main Content -->
+    <div class="container main-content">
+        <!-- Messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        {% block content %}{% endblock %}
+    </div>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Knowledge Management System</h5>
+                    <p class="mb-0">Share knowledge, collaborate, and grow together.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0">&copy; 2025 Knowledge System. Built with Django & Bootstrap.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Bootstrap 5.3 JS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+    
+    <!-- Custom JavaScript -->
+    <script>
+        // Auto-hide alerts after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+        
+        // Bookmark toggle functionality
+        function toggleBookmark(slug) {
+            fetch(`/knowledge/bookmark/${slug}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                const bookmarkBtn = document.querySelector(`[data-slug="${slug}"]`);
+                if (data.bookmarked) {
+                    bookmarkBtn.innerHTML = '<i class="bi bi-bookmark-fill"></i>';
+                    bookmarkBtn.classList.add('text-warning');
+                } else {
+                    bookmarkBtn.innerHTML = '<i class="bi bi-bookmark"></i>';
+                    bookmarkBtn.classList.remove('text-warning');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+        
+        // WebSocket connection for system-wide notifications
+        let knowledgeSystemSocket = null;
+        
+        function initializeKnowledgeSystemWebSocket() {
+            if (knowledgeSystemSocket) {
+                knowledgeSystemSocket.close();
+            }
+            
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws/knowledge/system/`;
+            
+            knowledgeSystemSocket = new WebSocket(wsUrl);
+            
+            knowledgeSystemSocket.onopen = function(e) {
+                console.log('Knowledge system WebSocket connected');
+            };
+            
+            knowledgeSystemSocket.onmessage = function(e) {
+                const data = JSON.parse(e.data);
+                handleSystemNotification(data);
+            };
+            
+            knowledgeSystemSocket.onclose = function(e) {
+                console.log('Knowledge system WebSocket disconnected');
+                // Reconnect after 3 seconds
+                setTimeout(initializeKnowledgeSystemWebSocket, 3000);
+            };
+            
+            knowledgeSystemSocket.onerror = function(e) {
+                console.error('Knowledge system WebSocket error:', e);
+            };
+        }
+        
+        function handleSystemNotification(data) {
+            switch(data.type) {
+                case 'article_published':
+                    showNotification(`New article published: ${data.article.title}`, 'success');
+                    break;
+                case 'article_updated':
+                    showNotification(`Article updated: ${data.article.title}`, 'info');
+                    break;
+                case 'new_comment_notification':
+                    showNotification(`New comment on "${data.article.title}" by ${data.comment_author}`, 'info');
+                    break;
+            }
+        }
+        
+        function showNotification(message, type = 'info') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 400px;';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(alertDiv);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+        
+        // Initialize WebSocket connection when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            {% if user.is_authenticated %}
+                initializeKnowledgeSystemWebSocket();
+            {% endif %}
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

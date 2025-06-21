@@ -1,0 +1,303 @@
+{% extends 'sample_app/base.html' %}
+
+{% block title %}{{ category.name }} - Categories - Knowledge Management System{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="bg-light py-3">
+    <div class="container">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{% url 'knowledge_home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'knowledge_category_list' %}">Categories</a></li>
+            {% if category.parent %}
+                <li class="breadcrumb-item"><a href="{% url 'knowledge_category_detail' category.parent.pk %}">{{ category.parent.name }}</a></li>
+            {% endif %}
+            <li class="breadcrumb-item active">{{ category.name }}</li>
+        </ol>
+    </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Main Content -->
+    <div class="col-lg-8">
+        <!-- Category Header -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h1 class="mb-2">
+                            <i class="bi bi-tag"></i> {{ category.name }}
+                        </h1>
+                        {% if category.parent %}
+                            <p class="text-muted mb-0">
+                                <i class="bi bi-arrow-up-right"></i> 
+                                Parent: <a href="{% url 'knowledge_category_detail' category.parent.pk %}">{{ category.parent.name }}</a>
+                            </p>
+                        {% endif %}
+                    </div>
+                    
+                    {% if user.is_staff %}
+                    <div class="btn-group">
+                        <a href="/admin/sample_app/knowledgecategory/{{ category.pk }}/change/" class="btn btn-outline-primary btn-sm" target="_blank">
+                            <i class="bi bi-pencil"></i> Edit
+                        </a>
+                        <a href="/admin/sample_app/knowledgecategory/{{ category.pk }}/delete/" class="btn btn-outline-danger btn-sm" target="_blank">
+                            <i class="bi bi-trash"></i> Delete
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                {% if category.description %}
+                <p class="lead">{{ category.description }}</p>
+                {% endif %}
+                
+                <div class="row text-center mt-4">
+                    <div class="col-4">
+                        <div class="h4 mb-0 text-primary">{{ page_obj.paginator.count }}</div>
+                        <small class="text-muted">Articles</small>
+                    </div>
+                    <div class="col-4">
+                        <div class="h4 mb-0 text-success">{{ category.subcategories.count }}</div>
+                        <small class="text-muted">Subcategories</small>
+                    </div>
+                    <div class="col-4">
+                        <div class="h4 mb-0 text-info">{{ category.created_at|date:"M Y" }}</div>
+                        <small class="text-muted">Created</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Subcategories -->
+        {% if category.subcategories.all %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-folder"></i> Subcategories
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for subcategory in category.subcategories.all %}
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex justify-content-between align-items-center p-3 border rounded">
+                            <div>
+                                <h6 class="mb-1">
+                                    <a href="{% url 'knowledge_category_detail' subcategory.pk %}" class="text-decoration-none">
+                                        {{ subcategory.name }}
+                                    </a>
+                                </h6>
+                                <small class="text-muted">{{ subcategory.description|truncatewords:10 }}</small>
+                            </div>
+                            <span class="badge bg-primary">{{ subcategory.articles.count }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Articles in Category -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3>
+                <i class="bi bi-journal-text"></i> Articles in {{ category.name }}
+                <small class="text-muted">({{ page_obj.paginator.count }})</small>
+            </h3>
+            {% if user.is_authenticated %}
+                <a href="{% url 'knowledge_article_create' %}?category={{ category.pk }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Add Article
+                </a>
+            {% endif %}
+        </div>
+        
+        {% if page_obj %}
+            {% for article in page_obj %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="d-flex align-items-center">
+                            {% if article.featured %}
+                                <i class="bi bi-star-fill text-warning me-2"></i>
+                            {% endif %}
+                            <span class="badge bg-secondary">{{ article.get_status_display }}</span>
+                        </div>
+                        {% if user.is_authenticated %}
+                            <button class="btn-bookmark" onclick="toggleBookmark('{{ article.slug }}')" data-slug="{{ article.slug }}">
+                                <i class="bi bi-bookmark"></i>
+                            </button>
+                        {% endif %}
+                    </div>
+                    
+                    <h5 class="card-title">
+                        <a href="{{ article.get_absolute_url }}" class="text-decoration-none">
+                            {{ article.title }}
+                        </a>
+                    </h5>
+                    
+                    {% if article.summary %}
+                    <p class="card-text text-muted">{{ article.summary|truncatewords:30 }}</p>
+                    {% endif %}
+                    
+                    <!-- Tags -->
+                    {% if article.tags.all %}
+                    <div class="mb-2">
+                        {% for tag in article.tags.all %}
+                            <span class="badge tag-badge" style="background-color: {{ tag.color }};">
+                                {{ tag.name }}
+                            </span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            <i class="bi bi-person"></i> {{ article.author.username }}
+                            <i class="bi bi-calendar ms-2"></i> {{ article.updated_at|date:"M d, Y" }}
+                            <i class="bi bi-eye ms-2"></i> {{ article.view_count }}
+                            <i class="bi bi-chat ms-2"></i> {{ article.comments.count }}
+                        </small>
+                        
+                        {% if user.is_authenticated and article.author == user or user.is_staff %}
+                        <div class="btn-group btn-group-sm">
+                            <a href="{% url 'knowledge_article_edit' article.slug %}" class="btn btn-outline-primary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'knowledge_article_delete' article.slug %}" class="btn btn-outline-danger">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+            <nav aria-label="Articles pagination">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1">
+                                <i class="bi bi-chevron-double-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">
+                                <i class="bi bi-chevron-double-right"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-journal-x display-1 text-muted"></i>
+                <h4 class="mt-3">No articles in this category yet</h4>
+                <p class="text-muted">Be the first to create an article in {{ category.name }}!</p>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'knowledge_article_create' %}?category={{ category.pk }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Create Article
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Quick Actions -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-lightning"></i> Quick Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'knowledge_category_list' %}" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-arrow-left"></i> All Categories
+                    </a>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'knowledge_article_create' %}?category={{ category.pk }}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-plus-circle"></i> Add Article Here
+                        </a>
+                    {% endif %}
+                    {% if user.is_staff %}
+                        <a href="/admin/sample_app/knowledgecategory/add/" class="btn btn-outline-success btn-sm" target="_blank">
+                            <i class="bi bi-plus-circle"></i> Add Subcategory
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Category Navigation -->
+        {% if category.parent or category.subcategories.all %}
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-diagram-3"></i> Category Navigation
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if category.parent %}
+                <div class="mb-3">
+                    <h6 class="text-muted">Parent Category</h6>
+                    <a href="{% url 'knowledge_category_detail' category.parent.pk %}" class="btn btn-outline-secondary btn-sm w-100">
+                        <i class="bi bi-arrow-up"></i> {{ category.parent.name }}
+                    </a>
+                </div>
+                {% endif %}
+                
+                {% if category.subcategories.all %}
+                <div>
+                    <h6 class="text-muted">Subcategories</h6>
+                    {% for subcategory in category.subcategories.all %}
+                        <a href="{% url 'knowledge_category_detail' subcategory.pk %}" class="btn btn-outline-info btn-sm w-100 mb-1">
+                            <i class="bi bi-arrow-down"></i> {{ subcategory.name }}
+                            <span class="badge bg-light text-dark ms-1">{{ subcategory.articles.count }}</span>
+                        </a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if user.is_authenticated %}
+    {% csrf_token %}
+{% endif %}
+{% endblock %}
